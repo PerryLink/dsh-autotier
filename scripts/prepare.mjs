@@ -19,8 +19,11 @@ function binOf(packageName, binKey) {
   return path.resolve(path.dirname(pkgPath), entry)
 }
 
+// Every child's stdout is routed to our stderr: this script runs inside
+// `npm pack`/`npm publish`, whose own `--json` output must stay the only thing
+// on stdout (a JSON consumer such as dsh-plugin-doctor parses it).
 function run(bin, args) {
-  const result = spawnSync(process.execPath, [bin, ...args], { stdio: 'inherit' })
+  const result = spawnSync(process.execPath, [bin, ...args], { stdio: ['ignore', 2, 2] })
   if (result.error !== undefined) throw result.error
   if (result.status !== 0) process.exit(result.status ?? 1)
 }
@@ -33,4 +36,4 @@ run(binOf('tsdown', 'tsdown'), [])
 // TS 5.9 does not rewrite `.ts` specifiers in declaration emit; fix them so
 // NodeNext declaration consumers can resolve lib/types.
 run(path.resolve(path.dirname(fileURLToPath(import.meta.url)), 'fix-dts.mjs'), [])
-console.log('build complete: lib/types + lib/index.js')
+console.error('build complete: lib/types + lib/index.js')
