@@ -17,9 +17,14 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 
 | Harness | स्थिति |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | संगत (CI इसी की जाँच करता है और compat वर्कफ़्लो इसे इंस्टॉल करता है) |
-| `0.1.5-alpha.1` (वर्तमान checkout लाइन) | इसके प्रकाशित type faces के विरुद्ध टाइप-जाँच; end-to-end smoke `0.1.2-rc.1` पर चलता है |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | संगत; compat वर्कफ़्लो इस लाइन को end-to-end इंस्टॉल करता है |
+| `@deepseek-ai/dsh` `0.1.5-alpha.1` | संगत; end-to-end सत्यापित (वास्तविक profile, `--dump-config` पंक्ति, keyless smoke) और compat मैट्रिक्स में |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer आधार |
+
+peer ranges दोनों प्रकाशित लाइनें स्पष्ट रूप से लिखती हैं (`>=0.1.2-rc.1 <0.2.0
+|| >=0.1.5-alpha.1 <0.2.0`), क्योंकि जिस range का एकमात्र prerelease comparator
+पुराने tuple पर हो वह बाद के alpha को स्वीकार नहीं करता। हर प्रकाशन-लहर पर
+रिफ़्रेश होता है।
 
 यह प्लगइन केवल host plane पर रहता है और अपना preset नहीं माँगता: host पंक्ति
 हर सत्र पर लागू होती है। *आपके* preset में एक प्रॉम्प्ट खंड वैकल्पिक है और

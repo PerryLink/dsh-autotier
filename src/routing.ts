@@ -33,6 +33,7 @@ import {
   type Decision,
   type RouteState,
 } from './policy.ts'
+import { RoutePreflight } from './preflight.ts'
 import type { AutotierService } from './service.ts'
 import type { AgentStateStore } from './state.ts'
 import { classifyFallback, EFFORT_LADDER, effortRank, escalationLadder, resolveRoute } from './tiers.ts'
@@ -122,6 +123,7 @@ export class AutotierRouter {
   private readonly counters = new WeakMap<Session, { toolNames: string[]; messageCount: number }>()
   /** Router-owned lifetime signal: aborts in-flight judge calls on unload. */
   private readonly lifetime = new AbortController()
+  private readonly preflight: RoutePreflight
   private disposed = false
 
   /**
@@ -132,6 +134,10 @@ export class AutotierRouter {
     this.ctx = options.ctx
     this.service = options.service
     this.states = options.states
+    this.preflight = new RoutePreflight({
+      ctx: this.ctx,
+      onDegrade: (_key, note) => this.ctx.logger.warn('dsh-autotier: %s', note),
+    })
     this.ctx.on('agent/inbox/inserted', payload => this.onInboxInserted(payload.agent, payload.message), { prepend: true })
     this.ctx.on('agent/request', (payload, next) => this.onRequest(payload.agent, payload.turn, payload.step, next), { prepend: true })
     this.ctx.on('agent/error', payload => this.onAgentError(payload.agent, payload.error))
@@ -431,7 +437,11 @@ export class AutotierRouter {
     const source: RouteSource = veto === undefined || veto === null ? decision.source : 'manual'
     const reason = veto === undefined || veto === null ? decision.reason : `veto: ${veto.reason}`
     const route = this.routeFor(tier, config, intent, state, now, base)
-    const applied = resolveRoute(base, route)
+    // Pre-flight the landing against the live registry: an unregistered
+    // provider or an effort the target model rejects degrades here instead of
+    // failing the request.
+    const safeRoute = await this.preflight.sanitize(route, tier === 'strong' ? config.tiers.strong : config.tiers.cheap)
+    const applied = resolveRoute(base, safeRoute)
     if (state.appliedTier !== tier) {
       const from = state.appliedTier
       state.appliedTier = tier

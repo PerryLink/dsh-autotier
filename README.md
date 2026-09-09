@@ -17,9 +17,14 @@ escalate to the strong tier with a TTL fallback.
 
 | Harness | Status |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible (this is what CI type-checks and the compat workflow installs) |
-| `0.1.5-alpha.1` (the current harness checkout line) | type-checked against its published type faces; the end-to-end smoke runs on `0.1.2-rc.1` |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible; the compat workflow installs this line end-to-end |
+| `@deepseek-ai/dsh` `0.1.5-alpha.1` | compatible; verified end-to-end (real profile install, `--dump-config` row, keyless headless smoke) and in the compat matrix |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer baseline |
+
+Peer ranges name both published lines explicitly (`>=0.1.2-rc.1 <0.2.0 ||
+>=0.1.5-alpha.1 <0.2.0`), because a semver range whose only prerelease
+comparator sits on an earlier version tuple does not admit a later alpha.
+They are refreshed per published wave.
 
 The plugin is host-plane only. It needs no agent preset of its own: the host
 row applies to every session. A one-line prompt section in *your* preset is

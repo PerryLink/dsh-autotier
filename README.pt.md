@@ -18,9 +18,13 @@ retorno.
 
 | Harness | Estado |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | compatível (é o que a CI verifica e o que o fluxo compat instala) |
-| `0.1.5-alpha.1` (a linha atual do checkout) | verificado por tipos contra suas faces publicadas; o smoke ponta a ponta roda em `0.1.2-rc.1` |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | compatível; o fluxo compat instala esta linha ponta a ponta |
+| `@deepseek-ai/dsh` `0.1.5-alpha.1` | compatível; verificada ponta a ponta (perfil real, linha no `--dump-config`, smoke keyless) e na matriz compat |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
+
+Os ranges de peers nomeiam as duas linhas publicadas (`>=0.1.2-rc.1 <0.2.0 ||
+>=0.1.5-alpha.1 <0.2.0`), porque um range cujo único comparador de prerelease
+está numa tupla anterior não admite um alpha posterior. São atualizados por onda.
 
 O plugin vive apenas no plano host e não precisa de preset próprio: a linha host
 vale para todas as sessões. Uma seção de prompt no *seu* preset é opcional e
