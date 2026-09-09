@@ -137,6 +137,14 @@ export interface ResolvedTierConfig {
   fallback: ResolvedFallbackEntry[]
 }
 
+/** One fully-resolved declarative rule. */
+export interface ResolvedRule {
+  id: string
+  when: { patterns: string[]; tools: string[]; cwd: string }
+  tier: 'cheap' | 'strong'
+  priority: number
+}
+
 /** Fully-resolved configuration: every field present, runtime-frozen. */
 export interface ResolvedConfig {
   tiers: {
@@ -148,7 +156,7 @@ export interface ResolvedConfig {
     ruleThreshold: number
     attemptBand: { enabled: boolean; tauLow: number }
     hysteresis: { toStrong: number; toCheap: number }
-    rules: Required<IntentRule>[]
+    rules: ResolvedRule[]
     judge: Required<JudgeConfig>
     scenarios: Required<ScenarioToggles>
     costMode: CostMode
@@ -416,7 +424,7 @@ function resolveIntent(raw: IntentConfig | undefined): ResolvedConfig['intent'] 
   if (toCheap >= toStrong) {
     invalid('intent.hysteresis', `toCheap (${String(toCheap)}) must stay below toStrong (${String(toStrong)})`)
   }
-  const rules: Required<IntentRule>[] = []
+  const rules: ResolvedRule[] = []
   const ruleIds = new Set<string>()
   for (const [index, rule] of (intent.rules ?? []).entries()) {
     const id = text(`intent.rules[${String(index)}].id`, rule.id, '')

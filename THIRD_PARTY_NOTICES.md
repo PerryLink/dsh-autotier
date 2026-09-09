@@ -37,5 +37,27 @@ configurable whitelist, `guard.protectedPaths` review escalation, and a
 structured denial reason. No upstream file is bundled verbatim; the port is
 annotated per module with the source file and version.
 
+### Deliberate deltas over upstream
+
+These are this plugin's own additions (Apache-2.0), not upstream code:
+
+1. **Shell-wrapper re-scan.** Upstream misses `sh -c "rm -rf /"` (the payload is
+   quoted, so the command-position anchor never sees `rm`). `matchCommand` first
+   applies the upstream rules unchanged, then re-scans the `-c` payload of
+   `sh|bash|zsh|dash|ksh` (including combined flag clusters such as `-lc`,
+   case-insensitive names, an optional leading backslash, and a preceding runner
+   with its own arguments), bounded to three nesting levels. An inner match is
+   reported as `shell-wrapper:<inner rule id>`. `hasRecursiveForceRm` itself
+   stays byte-for-byte upstream, and the upstream false negative is asserted in
+   the test suite as a documented regression.
+2. **Fallback classification split.** Upstream's `classifyFallback` tri-state is
+   split into `permanent`/`transient`/`ignore`/`unknown` so the request-error
+   handler can honour its division of labour with `dsh-llm-retry` (permanent
+   codes switch the chain immediately; transient codes wait for retry
+   exhaustion).
+3. **Effort vocabulary.** Upstream's `['medium', 'high', 'max']` ladder is
+   replaced by the adapter-owned `off | low | high | max`; `medium` does not
+   exist on this host and would fail every request.
+
 The read-only reference checkout used for the port lives outside this repository
 and is never shipped.

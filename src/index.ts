@@ -16,8 +16,12 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import { registerTierCommand } from './command.ts'
 import { Config, resolveConfig, validateConfig, type Config as AutotierConfig } from './config.ts'
+import { AutotierRouter } from './routing.ts'
 import { AutotierService } from './service.ts'
+import { AgentStateStore, registerTierProjection } from './state.ts'
+import { registerTierTools } from './tools.ts'
 
 export { Config, resolveConfig, validateConfig } from './config.ts'
 export type { Config as AutotierConfig, ResolvedConfig } from './config.ts'
@@ -34,6 +38,43 @@ export type {
 } from './types.ts'
 export { EFFORT_IDS, ROUTING_MODES, SCENARIOS, TIER_IDS } from './types.ts'
 export { AutotierService } from './service.ts'
+export { AutotierRouter, applyEscalation } from './routing.ts'
+export type { RouteProposal, RouteVeto, TierChange } from './routing.ts'
+export { AgentStateStore, registerTierProjection, TIER_PROJECTION_KEY } from './state.ts'
+export {
+  classifyIntent,
+  compileRules,
+  computeSignals,
+  evaluateRules,
+  fingerprintOf,
+  PosteriorTable,
+  wilsonLowerBound,
+} from './intent.ts'
+export type { IntentInput, IntentResult, IntentSignals, Posterior, RuleHit } from './intent.ts'
+export {
+  attemptBandApplies,
+  createRouteState,
+  decideTier,
+  escalationActive,
+  judgeNeeded,
+  noteFailure,
+  noteFallback,
+  noteJudgeCall,
+} from './policy.ts'
+export type { Decision, RouteState } from './policy.ts'
+export {
+  advanceFallback,
+  classifyFallback,
+  effortRank,
+  escalationLadder,
+  fallbackActive,
+  nextEffortStep,
+  resolveRoute,
+  routeEquals,
+} from './tiers.ts'
+export type { EscalationRung, FallbackClass, FallbackRecord } from './tiers.ts'
+export { JUDGE_LABELS, parseJudgeLabel, resolveJudgeRoute, runJudge } from './judge.ts'
+export type { JudgeOutcome, JudgeRoute } from './judge.ts'
 
 /** The cordis.yml row id and the plugin name must match. */
 export const name = 'dsh-autotier'
@@ -50,7 +91,8 @@ export const inject = ['settings', 'llm', 'tools', 'commands', 'sessions']
 
 /**
  * Mount the plugin: judge the configuration, register the `autotier` settings
- * namespace, and publish the `ctx.autotier` service.
+ * namespace, publish the `ctx.autotier` service, and wire the routing listeners,
+ * the `/tier` command and the two read-only tools.
  *
  * @param ctx - the plugin context.
  * @param config - the raw row configuration; every field is optional.
@@ -69,6 +111,11 @@ export function apply(ctx: Context, config: AutotierConfig = {}): void {
     },
   })
   const service = new AutotierService(ctx, { scope, config: resolved })
+  registerTierProjection(ctx)
+  const states = new AgentStateStore()
+  new AutotierRouter({ ctx, service, states })
+  registerTierCommand(ctx, service, states)
+  registerTierTools(ctx, { service, states })
   const status = service.status()
   ctx.logger.info(
     'dsh-autotier: mode=%s strong=%s/%s cheap=%s/%s guard=%s',
