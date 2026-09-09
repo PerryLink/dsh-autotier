@@ -211,6 +211,17 @@ describe('real AgentLoop routing', () => {
     }
   })
 
+  it('does not stall on a hanging autotier/route listener', async () => {
+    const harness = await createLoopHarness()
+    try {
+      harness.ctx.on('autotier/route', () => new Promise(() => {}))
+      await say(harness, 'Hello!')
+      expect(harness.adapter.calls.length).toBeGreaterThan(0)
+    } finally {
+      await harness.ctx.fiber.dispose()
+    }
+  })
+
   it('walks the effort-first escalation ladder after recurring failures', async () => {
     const harness = await createLoopHarness()
     try {

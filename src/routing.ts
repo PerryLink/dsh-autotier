@@ -88,6 +88,9 @@ export interface RouterOptions {
   readonly states: AgentStateStore
 }
 
+/** How long third parties have to veto a proposed tier before the turn proceeds. */
+const VETO_TIMEOUT_MS = 250
+
 /** Extract the plain text of one message's content blocks. */
 function textOf(content: readonly { type: string; text?: string }[]): string {
   return content
@@ -195,9 +198,13 @@ export class AutotierRouter {
   private startJudge(agent: Agent, config: ResolvedConfig, text: string, local: IntentResult): void {
     const state = this.states.for(agent)
     const signal = new AbortController().signal
+    // The decision object is the generation token: a newer input replaces
+    // `state.decision`, and a stale judge answer must not overwrite it.
+    const generation = local
     const task = runJudge(this.ctx, config, text, signal).then((outcome) => {
       if (this.disposed) return
       noteJudgeCall(state, Date.now(), outcome.ok)
+      if (state.decision !== generation) return
       if (!outcome.ok || outcome.tier === undefined || outcome.scenario === undefined) {
         this.ctx.logger.debug('dsh-autotier: judge abstained (%s); keeping the local verdict', outcome.detail)
         return
@@ -246,7 +253,22 @@ export class AutotierRouter {
   }
 
   /**
-   * The tier landing for one tier, resolving the vision override, an active
+   * Offer the proposal to third parties on the `autotier/route` serial event.
+   * A listener failure is contained, and a listener that never settles cannot
+   * stall the turn: the race resolves with our own decision after the timeout.
+   */
+  private async serialVeto(proposal: RouteProposal): Promise<RouteVeto | void> {
+    const deadline = new Promise<undefined>((resolve) => {
+      AbortSignal.timeout(VETO_TIMEOUT_MS).addEventListener('abort', () => { resolve(undefined) }, { once: true })
+    })
+    const offered = this.ctx.serial('autotier/route', proposal).catch((error: unknown) => {
+      this.ctx.logger.warn('dsh-autotier: autotier/route listener failed: %o', error)
+      return undefined
+    })
+    return Promise.race([offered, deadline])
+  }
+
+  /** The tier landing for one tier, resolving the vision override, an active
    * fallback record, and the effort-first escalation ladder.
    *
    * The ladder is the point of escalation: raise the current model's effort one
@@ -387,10 +409,7 @@ export class AutotierRouter {
       reason: decision.reason,
       confidence: decision.confidence,
     }
-    const veto = await this.ctx.serial('autotier/route', proposal).catch((error: unknown) => {
-      this.ctx.logger.warn('dsh-autotier: autotier/route listener failed: %o', error)
-      return undefined
-    })
+    const veto = await this.serialVeto(proposal)
     const tier = veto?.tier ?? decision.tier
     const source: RouteSource = veto === undefined || veto === null ? decision.source : 'manual'
     const reason = veto === undefined || veto === null ? decision.reason : `veto: ${veto.reason}`
