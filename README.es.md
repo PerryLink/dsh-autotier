@@ -207,10 +207,9 @@ cruzado se rechaza al guardar y la última política válida sigue vigente.
   el nivel cheap si quieres el mismo perfil de coste (`docs/supporting-lanes.md`).
 - `followSession: true` en el nivel cheap significa que una elección explícita de
   modelo en la sesión gana; en ese caso el nivel cheap no puede imponer el suyo.
-- **Aún no hay tarjeta de Settings ni píldora del compositor.** El enrutamiento es
-  totalmente automático y la superficie host (`ctx.autotier.status()` /
-  `catalog()`, `/tier`, `tier_status`, `tier_route`) está completa; la mitad de
-  navegador está prevista para v0.2.
+- **La tarjeta de Settings y la píldora del compositor llegaron en 0.2.0.** La
+  tarjeta (modo de enrutamiento, aterrizajes de nivel, catálogo de modelos) vive en
+  la sección Plugins y la píldora cicla el modo de la sesión desde el compositor.
 - **Un modelo elegido en la GUI no se detecta automáticamente.** Usa
   `routingMode: delegated` o `/tier off` para detener el enrutamiento.
 - **Las posteriores por huella viven en memoria** y se reinician al reiniciar.

@@ -205,10 +205,9 @@ cruzado é recusada ao salvar e a última política válida continua em vigor.
   cheap para o mesmo perfil de custo (`docs/supporting-lanes.md`).
 - `followSession: true` no nível cheap significa que uma escolha explícita de
   modelo na sessão vence; nesse caso o nível cheap não pode impor o seu.
-- **Ainda não há cartão de Settings nem pílula do compositor.** O roteamento é
-  totalmente automático e a superfície host (`ctx.autotier.status()` /
-  `catalog()`, `/tier`, `tier_status`, `tier_route`) está completa; a metade do
-  navegador está planejada para v0.2.
+- **O cartão de Settings e a pílula do compositor chegaram na 0.2.0.** O cartão
+  (modo de roteamento, aterrissagens de nível, catálogo de modelos) fica na seção
+  Plugins e a pílula cicla o modo da sessão pelo compositor.
 - **Um modelo escolhido na GUI não é detectado automaticamente.** Use
   `routingMode: delegated` ou `/tier off` para interromper o roteamento.
 - **As posteriores por impressão digital ficam em memória** e reiniciam a cada

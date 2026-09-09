@@ -203,9 +203,9 @@ dsh plugin --profile web remove dsh-autotier
   संरेखित करें (`docs/supporting-lanes.md`)।
 - cheap स्तर पर `followSession: true` का अर्थ है कि सत्र का स्पष्ट मॉडल चयन
   जीतता है; उस स्थिति में cheap स्तर अपना मॉडल नहीं थोप सकता।
-- **अभी Settings कार्ड या composer पिल नहीं है।** रूटिंग पूरी तरह स्वचालित है और
-  host सतह (`ctx.autotier.status()` / `catalog()`, `/tier`, `tier_status`,
-  `tier_route`) पूरी है; ब्राउज़र आधा v0.2 में नियोजित है।
+- **Settings कार्ड और composer पिल 0.2.0 में आ गए हैं।** कार्ड (रूटिंग मोड, लाइव
+  स्तर लैंडिंग, मॉडल कैटलॉग) Plugins सेटिंग्स अनुभाग में है और पिल composer से सत्र
+  मोड बदलता है।
 - **GUI में चुना गया मॉडल स्वचालित रूप से नहीं पहचाना जाता।** रूटिंग रोकने के लिए
   `routingMode: delegated` या `/tier off` इस्तेमाल करें।
 - **फिंगरप्रिंट posteriors केवल स्मृति में रहते हैं** और पुनः आरंभ पर रीसेट होते हैं।

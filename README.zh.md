@@ -184,9 +184,8 @@ dsh plugin --profile web remove dsh-autotier
   画像，请把它们各自的模型设置对齐到弱档（`docs/supporting-lanes.md`）。
 - 弱档 `followSession: true` 意味着会话中显式选择的模型优先；此时弱档无法强制
   使用自己的模型。
-- **暂无 Settings 卡片与 composer 胶囊**。路由已完全自动，host 面
-  （`ctx.autotier.status()` / `catalog()`、`/tier`、`tier_status`、
-  `tier_route`）已完整；浏览器半计划于 v0.2。
+- **Settings 卡片与 composer 胶囊已于 0.2.0 交付**。卡片（路由模式、实时档位落点、
+  模型目录）位于 Plugins 设置区，胶囊在输入区循环切换会话档位。
 - **GUI 里改选模型不会被自动识别**。请用 `routingMode: delegated` 或
   `/tier off` 关闭路由。
 - **指纹后验仅存于内存**，重启后重新学习。

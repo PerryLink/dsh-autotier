@@ -203,10 +203,9 @@ refused at save time and the last good policy stays in effect.
   want the same cost profile (`docs/supporting-lanes.md`).
 - `followSession: true` on the cheap tier means an explicit session model choice
   wins; in that case the cheap tier cannot force its own model.
-- **No Settings card or composer pill yet.** Routing is fully automatic and the
-  host surface (`ctx.autotier.status()` / `catalog()`, `/tier`, `tier_status`,
-  `tier_route`) is complete; the browser half that renders a Settings tab and a
-  composer tier pill is planned for v0.2.
+- **The Settings card and composer tier pill shipped in 0.2.0.** The card
+  (routing mode, live tier landings, model catalog) lives in the Plugins settings
+  section and the pill cycles the session mode from the composer.
 - **A model picked in the GUI is not detected automatically.** The router does
   not watch the `agent-default-model` document, so switching models there does
   not by itself stop routing — use `routingMode: delegated` or `/tier off`.
