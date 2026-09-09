@@ -18,6 +18,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import { registerTierCommand } from './command.ts'
 import { Config, resolveConfig, validateConfig, type Config as AutotierConfig } from './config.ts'
+import { registerGuardHook } from './guard.ts'
 import { AutotierRouter } from './routing.ts'
 import { AutotierService } from './service.ts'
 import { AgentStateStore, registerTierProjection } from './state.ts'
@@ -75,6 +76,16 @@ export {
 export type { EscalationRung, FallbackClass, FallbackRecord } from './tiers.ts'
 export { JUDGE_LABELS, parseJudgeLabel, resolveJudgeRoute, runJudge } from './judge.ts'
 export type { JudgeOutcome, JudgeRoute } from './judge.ts'
+export { evaluateToolCall, registerGuardHook } from './guard.ts'
+export type { GuardInput, GuardVerdict } from './guard.ts'
+export {
+  HIGH_IMPACT_COMMAND_RULES,
+  HIGH_IMPACT_PATH_RULES,
+  isCredentialPath,
+  matchCommand,
+  matchPath,
+} from './guard-rules.ts'
+export type { GuardMatch, GuardRule } from './guard-rules.ts'
 
 /** The cordis.yml row id and the plugin name must match. */
 export const name = 'dsh-autotier'
@@ -114,8 +125,16 @@ export function apply(ctx: Context, config: AutotierConfig = {}): void {
   registerTierProjection(ctx)
   const states = new AgentStateStore()
   new AutotierRouter({ ctx, service, states })
+  registerGuardHook({ ctx, service, states })
   registerTierCommand(ctx, service, states)
   registerTierTools(ctx, { service, states })
+  if (resolved.guard.interopDefend === 'auto' && ctx.get('defend') !== undefined) {
+    // Coexistence is deliberate: dsh-defend owns content scanning (injection,
+    // jailbreak, secrets) and the recursive-delete gate; autotier adds
+    // tier-conditional denial and escalation guidance. Neither weakens the
+    // other, and pass-through discipline keeps both in the chain.
+    ctx.logger.info('dsh-autotier: dsh-defend detected; running side by side (guard.interopDefend=auto)')
+  }
   const status = service.status()
   ctx.logger.info(
     'dsh-autotier: mode=%s strong=%s/%s cheap=%s/%s guard=%s',

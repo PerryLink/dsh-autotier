@@ -6,7 +6,7 @@
  * registered at load time on the root scope with `{ prepend: true }` so it wraps
  * the official `installModelSelection` listener (registered later, during agent
  * setup) and its replacement wins. It always awaits `next()` exactly once and
- * never returns `undefined` — the inner listener destructures the result without
+ * never returns `undefined` 鈥?the inner listener destructures the result without
  * a guard.
  *
  * @module dsh-autotier/routing
@@ -31,6 +31,7 @@ import {
   noteFallback,
   noteJudgeCall,
   type Decision,
+  type RouteState,
 } from './policy.ts'
 import type { AutotierService } from './service.ts'
 import type { AgentStateStore } from './state.ts'
@@ -229,13 +230,24 @@ export class AutotierRouter {
     }
   }
 
-  /** The tier landing for one tier, resolving the vision override. */
-  private routeFor(tier: TierId, config: ResolvedConfig, intent: IntentResult | undefined): TierRoute {
+  /** The tier landing for one tier, resolving the vision and fallback overrides. */
+  private routeFor(tier: TierId, config: ResolvedConfig, intent: IntentResult | undefined, state: RouteState, now: number): TierRoute {
     if (intent?.signals !== undefined && intent.shortCircuit === 'image') {
       const vision = config.tiers.vision
       return { provider: vision.provider, model: vision.model }
     }
     const entry = tier === 'strong' ? config.tiers.strong : config.tiers.cheap
+    // An active fallback record pins the agent to one chain entry; the tier's
+    // effort still applies, so a fallback model keeps the intended reasoning
+    // budget.
+    if (state.fallback !== undefined && state.fallback.until > now) {
+      const chainEntry = entry.fallback[state.fallback.index]
+      if (chainEntry !== undefined) {
+        return entry.followSession
+          ? { provider: chainEntry.provider, model: chainEntry.model }
+          : { provider: chainEntry.provider, model: chainEntry.model, effort: entry.effort }
+      }
+    }
     if (entry.followSession) return { provider: entry.provider, model: entry.model }
     return { provider: entry.provider, model: entry.model, effort: entry.effort }
   }
@@ -302,7 +314,7 @@ export class AutotierRouter {
     const tier = veto?.tier ?? decision.tier
     const source: RouteSource = veto === undefined || veto === null ? decision.source : 'manual'
     const reason = veto === undefined || veto === null ? decision.reason : `veto: ${veto.reason}`
-    const route = this.routeFor(tier, config, intent)
+    const route = this.routeFor(tier, config, intent, state, now)
     const applied = resolveRoute(base, route)
     if (state.appliedTier !== tier) {
       const from = state.appliedTier
@@ -327,8 +339,9 @@ export class AutotierRouter {
     const signature = `${codeOf(error)}|${state.decision?.fingerprint ?? ''}`
     const now = Date.now()
     const alreadyEscalated = escalationActive(state, now)
-    if (noteFailure(state, signature, config, now) && !alreadyEscalated) {
-      const tier = this.routeFor('strong', config, state.decision)
+    const escalatedNow = noteFailure(state, signature, config, now)
+    if (escalatedNow && !alreadyEscalated) {
+      const tier = this.routeFor('strong', config, state.decision, state, now)
       this.ctx.logger.warn(
         'dsh-autotier: escalating after %d recurring failure(s) (%s) -> %s/%s',
         state.escalation?.count ?? 0,

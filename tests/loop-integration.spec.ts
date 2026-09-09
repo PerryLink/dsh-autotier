@@ -14,6 +14,7 @@ import CommandRuntime from '@deepseek-ai/dsh-commands'
 import {
   createUserMessage,
   LlmAdapter,
+  LlmError,
   ReasoningEffortId,
   type GenerateOptions,
   type LlmResolvedModelInfo,
@@ -35,6 +36,8 @@ interface RecordedCall {
 /** A mock provider route that records every dispatch and answers `ok`. */
 class RecordingAdapter extends LlmAdapter {
   readonly calls: RecordedCall[] = []
+  /** Model id -> failure code; a dispatch on that model throws instead of streaming. */
+  readonly failures = new Map<string, string>()
 
   /** Declare the adapter-owned effort vocabulary so the runtime accepts our routes. */
   override resolveModel(provider: string, model: string): Promise<LlmResolvedModelInfo> {
@@ -55,6 +58,7 @@ class RecordingAdapter extends LlmAdapter {
       model: options.model,
       effort: options.reasoningEffort === undefined ? undefined : String(options.reasoningEffort),
     })
+    const failure = this.failures.get(options.model)
     const chunks: StreamChunk[] = [
       { type: 'block-start', index: 0, blockType: 'text' },
       { type: 'text-delta', index: 0, text: 'ok' },
@@ -62,6 +66,7 @@ class RecordingAdapter extends LlmAdapter {
       { type: 'finish', reason: { kind: 'stop' } },
     ]
     return (async function* generate(): AsyncGenerator<StreamChunk> {
+      if (failure !== undefined) throw new LlmError(`mock failure for ${options.model}`, failure)
       for (const chunk of chunks) yield chunk
     })()
   }
@@ -180,6 +185,45 @@ describe('real AgentLoop routing', () => {
       await say(harness, 'Hello!')
       const projection = harness.ctx.sessionProjections.stateOf(harness.agent.session, 'autotier' as never)
       expect(projection).toMatchObject({ provider: 'mock', model: 'cheap-model', effort: 'low' })
+    } finally {
+      await harness.ctx.fiber.dispose()
+    }
+  })
+
+  it('escalates to the strong tier after two same-signature failures', async () => {
+    const harness = await createLoopHarness()
+    try {
+      harness.adapter.failures.set('cheap-model', 'SERVER')
+      await say(harness, 'Hello!')
+      await say(harness, 'Hello!')
+      harness.adapter.failures.delete('cheap-model')
+      await say(harness, 'Hello!')
+      expect(harness.adapter.calls.at(-1)?.model).toBe('strong-model')
+      expect(harness.adapter.calls.at(-1)?.effort).toBe('high')
+    } finally {
+      await harness.ctx.fiber.dispose()
+    }
+  })
+
+  it('walks the fallback chain when the cheap route is unusable', async () => {
+    const harness = await createLoopHarness({
+      tiers: {
+        strong: { provider: 'mock', model: 'strong-model', effort: 'high', followSession: false },
+        cheap: {
+          provider: 'mock',
+          model: 'cheap-model',
+          effort: 'low',
+          followSession: false,
+          fallback: [{ provider: 'mock', model: 'fallback-model' }],
+        },
+      },
+    })
+    try {
+      harness.adapter.failures.set('cheap-model', 'UNKNOWN_MODEL')
+      await say(harness, 'Hello!')
+      expect(harness.adapter.calls.map(call => call.model)).toContain('fallback-model')
+      expect(harness.adapter.calls.at(-1)?.model).toBe('fallback-model')
+      expect(harness.adapter.calls.at(-1)?.effort).toBe('low')
     } finally {
       await harness.ctx.fiber.dispose()
     }

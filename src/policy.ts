@@ -27,7 +27,7 @@ export interface RouteState {
   /** Plan mode as last observed. */
   planActive: boolean
   /** Failure escalation. */
-  escalation: { count: number; signature: string; until: number; rung: number } | undefined
+  escalation: { count: number; signature: string; until: number; rung: number; lastAt: number } | undefined
   /** Fallback-chain position. */
   fallback: FallbackRecord | undefined
   /** Judge resilience. */
@@ -38,6 +38,10 @@ export interface RouteState {
   toolNames: string[]
   /** Committed `user/message` count (classifier signal). */
   messageCount: number
+  /** How many calls the guard denied for this agent. */
+  denials: number
+  /** The last rule the guard fired, for `/tier status`. */
+  lastDenial: string
 }
 
 /** A fresh per-agent state. */
@@ -55,6 +59,8 @@ export function createRouteState(): RouteState {
     verified: false,
     toolNames: [],
     messageCount: 0,
+    denials: 0,
+    lastDenial: '',
   }
 }
 
@@ -189,23 +195,24 @@ export function noteJudgeCall(state: RouteState, now: number, ok: boolean): void
 export function noteFailure(state: RouteState, signature: string, config: ResolvedConfig, now: number): boolean {
   const current = state.escalation
   const sameSignature = config.escalation.signature ? current?.signature === signature : true
-  const withinWindow = current !== undefined && now - current.until < 0
-  const count = sameSignature && current !== undefined && (withinWindow || current.until > now - config.escalation.windowMs)
-    ? current.count + 1
-    : 1
+  const withinWindow = current !== undefined && now - current.lastAt <= config.escalation.windowMs
+  const count = sameSignature && current !== undefined && withinWindow ? current.count + 1 : 1
   const escalated = count >= config.escalation.threshold
   state.escalation = {
     count,
     signature: config.escalation.signature ? signature : '',
     until: escalated ? now + config.escalation.ttlMs : (current?.until ?? 0),
     rung: escalated ? (current?.rung ?? 0) + 1 : (current?.rung ?? 0),
+    lastAt: now,
   }
   return escalated
 }
 
-/** Clear an expired escalation lazily. */
+/** Clear an expired escalation lazily. A record that never escalated keeps its window count. */
 export function clearExpiredEscalation(state: RouteState, now: number): void {
-  if (state.escalation !== undefined && state.escalation.until <= now) state.escalation = undefined
+  if (state.escalation !== undefined && state.escalation.until > 0 && state.escalation.until <= now) {
+    state.escalation = undefined
+  }
 }
 
 /**

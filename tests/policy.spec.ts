@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Decision-state-machine suite: precedence between overrides, escalation, plan
  * mode, rules, posteriors and the classifier; the double-threshold hysteresis;
  * the judge's cooldown/abstain logic; and the same-signature escalation counter.
@@ -76,7 +76,7 @@ describe('decideTier precedence', () => {
   it('honours an active escalation above plan mode and rules', () => {
     const state = createRouteState()
     state.planActive = true
-    state.escalation = { count: 2, signature: 'SERVER|', until: 2_000, rung: 1 }
+    state.escalation = { count: 2, signature: 'SERVER|', until: 2_000, rung: 1, lastAt: 1_000 }
     const decision = decide({ state, rule: { id: 'x', tier: 'cheap' } })
     expect(decision.tier).toBe('strong')
     expect(decision.source).toBe('escalation')
