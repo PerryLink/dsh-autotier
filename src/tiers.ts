@@ -174,9 +174,11 @@ export function classifyFallback(failure: { code?: unknown; status?: unknown } |
   return 'unknown'
 }
 
-/** One agent's position in a tier's fallback chain. */
+/** One agent's position in one tier's fallback chain. */
 export interface FallbackRecord {
-  /** Index in the chain; -1 means the tier's own landing. */
+  /** The tier whose chain this record belongs to. */
+  tier: TierId
+  /** Index in that tier's chain; -1 means the tier's own landing. */
   index: number
   /** Epoch millis until which the record stays in force. */
   until: number
@@ -188,8 +190,9 @@ export function fallbackActive(record: FallbackRecord | undefined, now: number):
 }
 
 /**
- * Advance a fallback record one step down the chain.
- * @param record - the current record (absent = still on the tier landing).
+ * Advance a fallback record one step down one tier's chain.
+ * @param record - the current record (absent or from another tier = start of this chain).
+ * @param tier - the tier whose chain is being walked.
  * @param chainLength - the number of configured fallback entries.
  * @param now - current epoch millis.
  * @param ttlMs - how long the new entry stays in force.
@@ -197,12 +200,13 @@ export function fallbackActive(record: FallbackRecord | undefined, now: number):
  */
 export function advanceFallback(
   record: FallbackRecord | undefined,
+  tier: TierId,
   chainLength: number,
   now: number,
   ttlMs: number,
 ): FallbackRecord | null {
-  const index = record?.index ?? -1
+  const index = record !== undefined && record.tier === tier ? record.index : -1
   const next = index + 1
   if (next >= chainLength) return null
-  return { index: next, until: now + (Number.isFinite(ttlMs) && ttlMs > 0 ? ttlMs : 300_000) }
+  return { tier, index: next, until: now + (Number.isFinite(ttlMs) && ttlMs > 0 ? ttlMs : 300_000) }
 }

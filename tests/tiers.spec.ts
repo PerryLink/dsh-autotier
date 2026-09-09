@@ -145,15 +145,23 @@ describe('fallback records', () => {
   it('advances through the chain and stops when exhausted', () => {
     const now = 1_000
     expect(fallbackActive(undefined, now)).toBe(false)
-    const first = advanceFallback(undefined, 2, now, 5_000)
-    expect(first).toEqual({ index: 0, until: 6_000 })
+    const first = advanceFallback(undefined, 'cheap', 2, now, 5_000)
+    expect(first).toEqual({ tier: 'cheap', index: 0, until: 6_000 })
     expect(fallbackActive(first!, now)).toBe(true)
-    const second = advanceFallback(first!, 2, now, 5_000)
-    expect(second).toEqual({ index: 1, until: 6_000 })
-    expect(advanceFallback(second!, 2, now, 5_000)).toBeNull()
+    const second = advanceFallback(first!, 'cheap', 2, now, 5_000)
+    expect(second).toEqual({ tier: 'cheap', index: 1, until: 6_000 })
+    expect(advanceFallback(second!, 'cheap', 2, now, 5_000)).toBeNull()
+  })
+
+  it('restarts the chain when the tier changes', () => {
+    const now = 1_000
+    const cheapRecord = advanceFallback(undefined, 'cheap', 3, now, 5_000)
+    expect(cheapRecord?.index).toBe(0)
+    // A record from another tier must not be read as a position in this chain.
+    expect(advanceFallback(cheapRecord!, 'strong', 3, now, 5_000)).toEqual({ tier: 'strong', index: 0, until: 6_000 })
   })
 
   it('is inactive once the TTL expires', () => {
-    expect(fallbackActive({ index: 0, until: 999 }, 1_000)).toBe(false)
+    expect(fallbackActive({ tier: 'cheap', index: 0, until: 999 }, 1_000)).toBe(false)
   })
 })

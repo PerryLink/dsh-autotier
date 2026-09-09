@@ -271,7 +271,7 @@ export class AutotierRouter {
     // An active fallback record pins the agent to one chain entry; the tier's
     // effort still applies, so a fallback model keeps the intended reasoning
     // budget.
-    if (state.fallback !== undefined && state.fallback.until > now) {
+    if (state.fallback !== undefined && state.fallback.tier === tier && state.fallback.until > now) {
       const chainEntry = entry.fallback[state.fallback.index]
       if (chainEntry !== undefined) {
         return entry.followSession
@@ -470,7 +470,7 @@ export class AutotierRouter {
       if (downstream !== undefined) return downstream
     }
     const now = Date.now()
-    if (noteFallback(state, chain.length, config, now)) {
+    if (noteFallback(state, tier, chain.length, config, now)) {
       this.ctx.logger.warn(
         'dsh-autotier: provider "%s" failed with %s; switching to fallback entry %d of the %s tier',
         provider,

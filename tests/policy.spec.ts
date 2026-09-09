@@ -236,9 +236,18 @@ describe('fallback bookkeeping', () => {
   it('advances and then reports exhaustion', () => {
     const config = resolveConfig(undefined)
     const state = createRouteState()
-    expect(noteFallback(state, 1, config, 1_000)).toBe(true)
+    expect(noteFallback(state, 'cheap', 1, config, 1_000)).toBe(true)
     expect(state.fallback?.index).toBe(0)
-    expect(noteFallback(state, 1, config, 1_000)).toBe(false)
+    expect(state.fallback?.tier).toBe('cheap')
+    expect(noteFallback(state, 'cheap', 1, config, 1_000)).toBe(false)
     expect(state.fallback).toBeUndefined()
+  })
+
+  it('keeps another tier’s record intact when this tier’s chain is exhausted', () => {
+    const config = resolveConfig(undefined)
+    const state = createRouteState()
+    expect(noteFallback(state, 'cheap', 1, config, 1_000)).toBe(true)
+    expect(noteFallback(state, 'strong', 1, config, 1_000)).toBe(true)
+    expect(state.fallback?.tier).toBe('strong')
   })
 })

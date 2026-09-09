@@ -213,13 +213,19 @@ export function clearExpiredEscalation(state: RouteState, now: number): void {
 }
 
 /**
- * Advance the agent's fallback chain after one unusable route.
+ * Advance the agent's fallback chain for one tier after an unusable route.
  * @returns whether a chain entry was taken (false = chain exhausted).
  */
-export function noteFallback(state: RouteState, chainLength: number, config: ResolvedConfig, now: number): boolean {
-  const next = advanceFallback(state.fallback, chainLength, now, config.escalation.fallbackTtlMs)
+export function noteFallback(
+  state: RouteState,
+  tier: TierId,
+  chainLength: number,
+  config: ResolvedConfig,
+  now: number,
+): boolean {
+  const next = advanceFallback(state.fallback, tier, chainLength, now, config.escalation.fallbackTtlMs)
   if (next === null) {
-    state.fallback = undefined
+    if (state.fallback?.tier === tier) state.fallback = undefined
     return false
   }
   state.fallback = next
