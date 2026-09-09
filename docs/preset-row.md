@@ -41,13 +41,9 @@ the plugin itself does not depend on this row.
 
 ## Verifying it took effect
 
-```
-/tier status
-```
-
-`prompt-section` reads `present` when the assembled system prompt carries a
-section whose name is `autotier`. If you rename the section, keep the name
-`autotier` or the check cannot see it.
+`/tier status` prints the live routing state; the optional section itself is
+visible in the assembled system prompt, not in `/tier` output. If you rename the
+section, keep the name `autotier` so you can find it in the prompt.
 
 ## Per-preset isolation
 

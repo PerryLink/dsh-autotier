@@ -38,6 +38,25 @@ const LOOSE_PATH_KEYS = ['path', 'target', 'file', 'filename'] as const
 /** Tool names whose `path`-like arguments are filesystem targets. */
 const WRITE_TOOL_PATTERN = /(?:write|edit|patch|create|delete|remove|move|copy|rename|save|apply|mkdir|touch)/iu
 
+/**
+ * Secret shapes that must never reach a model-visible denial reason or the
+ * session log. The matched snippet is the one place user text could leak into
+ * the guard's output, so it is redacted before it is composed.
+ */
+const SECRET_PATTERNS: readonly RegExp[] = [
+  /(bearer\s+)[A-Za-z0-9._~+/=-]{8,}/giu,
+  /\bsk-[A-Za-z0-9._-]{8,}/gu,
+  /\bgh[pousr]_[A-Za-z0-9]{8,}/gu,
+  /((?:password|passwd|token|secret|api[_-]?key)\s*[=:]\s*)\S+/giu,
+]
+
+/** Redact credential-shaped spans from one snippet. */
+export function redactSnippet(text: string): string {
+  let redacted = text
+  for (const pattern of SECRET_PATTERNS) redacted = redacted.replace(pattern, '$1<redacted>')
+  return redacted
+}
+
 /** The guard's verdict for one call. */
 export interface GuardVerdict {
   readonly action: 'allow' | 'deny'
@@ -124,7 +143,7 @@ export function evaluateToolCall(input: GuardInput): GuardVerdict {
         action: 'deny',
         rule: 'protected-path',
         axis: 'protected-path',
-        reason: `dsh-autotier guard: "${path}" is a protected surface (${protectedEntry}). `
+        reason: `dsh-autotier guard: "${redactSnippet(path)}" is a protected surface (${protectedEntry}). `
           + 'Modifying it requires the strong tier; report what you intend to change instead of retrying.',
       }
     }
@@ -136,7 +155,7 @@ export function evaluateToolCall(input: GuardInput): GuardVerdict {
         action: 'deny',
         rule: hit.rule,
         axis: 'command',
-        reason: `dsh-autotier guard: ${hit.description}. This command is denied while the cheap tier executes; `
+        reason: `dsh-autotier guard: ${redactSnippet(hit.description)}. This command is denied while the cheap tier executes; `
           + 'the tier will escalate if the task needs it — do not retry the command.',
       }
     }
@@ -148,7 +167,7 @@ export function evaluateToolCall(input: GuardInput): GuardVerdict {
         action: 'deny',
         rule: hit.rule,
         axis: 'path',
-        reason: `dsh-autotier guard: ${hit.description}. Credential and key material is denied while the cheap tier `
+        reason: `dsh-autotier guard: ${redactSnippet(hit.description)}. Credential and key material is denied while the cheap tier `
           + 'executes; the tier will escalate if the task needs it.',
       }
     }

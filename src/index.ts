@@ -76,7 +76,7 @@ export {
 export type { EscalationRung, FallbackClass, FallbackRecord } from './tiers.ts'
 export { JUDGE_LABELS, parseJudgeLabel, resolveJudgeRoute, runJudge } from './judge.ts'
 export type { JudgeOutcome, JudgeRoute } from './judge.ts'
-export { evaluateToolCall, registerGuardHook } from './guard.ts'
+export { evaluateToolCall, redactSnippet, registerGuardHook } from './guard.ts'
 export type { GuardInput, GuardVerdict } from './guard.ts'
 export {
   HIGH_IMPACT_COMMAND_RULES,
