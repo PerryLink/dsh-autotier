@@ -5,6 +5,32 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Route pre-flight against the live registry.** Before a tier landing is
+  written into the request configuration, the plugin now checks the two facts
+  that would fail the request outright: the provider route must be registered,
+  and the target model must declare the configured reasoning effort. An
+  unregistered provider redirects to a registered fallback chain entry; an
+  unsupported effort is dropped so the adapter default applies; an adapter that
+  cannot answer is treated leniently. Both answers are cached per
+  `provider/model`, and each degradation is logged once.
+- Compat workflow now runs its profile job over a matrix of both published
+  harness lines (`0.1.2-rc.1` and `0.1.5-alpha.1`), so drift in either is caught
+  automatically.
+
+### Changed
+
+- Peer ranges name both published lines explicitly
+  (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0`): a semver range whose only
+  prerelease comparator sits on an earlier version tuple does not admit a later
+  alpha, so the previous range left `0.1.5-alpha.1` unsatisfied.
+- `dsh.compatibility.dshReleases` and the five READMEs now declare
+  `0.1.5-alpha.1` compatible after an end-to-end verification (real profile
+  install, `--dump-config` row, keyless headless smoke).
+
 ## [0.1.0] - 2026-09-09
 
 ### Added
