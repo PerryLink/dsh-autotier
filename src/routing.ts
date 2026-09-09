@@ -35,7 +35,7 @@ import {
 } from './policy.ts'
 import type { AutotierService } from './service.ts'
 import type { AgentStateStore } from './state.ts'
-import { classifyFallback, escalationLadder, resolveRoute } from './tiers.ts'
+import { classifyFallback, EFFORT_LADDER, effortRank, escalationLadder, resolveRoute } from './tiers.ts'
 import type { RouteSource, TierId, TierRoute } from './types.ts'
 
 /** One proposed tier, offered to third parties on the `autotier/route` event. */
@@ -115,6 +115,8 @@ export class AutotierRouter {
   private readonly service: AutotierService
   private readonly states: AgentStateStore
   private readonly pendingJudges = new Set<Promise<void>>()
+  /** Per-session classifier counters, keyed by session so no agent registry is needed. */
+  private readonly counters = new WeakMap<Session, { toolNames: string[]; messageCount: number }>()
   private disposed = false
 
   /**
@@ -142,14 +144,24 @@ export class AutotierRouter {
 
   /** The classifier input for one agent. */
   private inputFor(agent: Agent, text: string, hasImage: boolean): IntentInput {
-    const state = this.states.for(agent)
+    const counters = this.counterFor(agent.session)
     return {
       text,
-      toolNames: state.toolNames,
+      toolNames: counters.toolNames,
       hasImage,
-      messageCount: state.messageCount,
+      messageCount: counters.messageCount,
       cwd: agent.session.header.cwd ?? '',
     }
+  }
+
+  /** The per-session classifier counters, created on first use. */
+  private counterFor(session: Session): { toolNames: string[]; messageCount: number } {
+    let counters = this.counters.get(session)
+    if (counters === undefined) {
+      counters = { toolNames: [], messageCount: 0 }
+      this.counters.set(session, counters)
+    }
+    return counters
   }
 
   /** The routing mode in force for one agent. */
@@ -168,6 +180,9 @@ export class AutotierRouter {
     state.input = input
     state.decision = classifyIntent(input, { rules: this.service.rules(), scenarios: config.intent.scenarios })
     state.verified = false
+    // `reviewOwed` deliberately survives a new input: a cheap attempt that hit a
+    // signal still owes exactly one strong pass, and a turn-ending failure has
+    // no later step in its own turn to spend it on.
     if (this.modeFor(agent) !== 'auto') return
     const rule = evaluateRules(this.service.rules(), input)
     if (shouldPlan(state.decision) && !state.planActive) this.enterPlanMode(agent)
@@ -230,8 +245,24 @@ export class AutotierRouter {
     }
   }
 
-  /** The tier landing for one tier, resolving the vision and fallback overrides. */
-  private routeFor(tier: TierId, config: ResolvedConfig, intent: IntentResult | undefined, state: RouteState, now: number): TierRoute {
+  /**
+   * The tier landing for one tier, resolving the vision override, an active
+   * fallback record, and the effort-first escalation ladder.
+   *
+   * The ladder is the point of escalation: raise the current model's effort one
+   * step at a time (the KV prefix survives and the official notice stays quiet
+   * for an effort-only change) before paying for a model switch. `rung` counts
+   * how many times escalation has triggered for this agent, so repeated failures
+   * walk the ladder instead of jumping to the strongest landing.
+   */
+  private routeFor(
+    tier: TierId,
+    config: ResolvedConfig,
+    intent: IntentResult | undefined,
+    state: RouteState,
+    now: number,
+    base?: LlmCallConfig,
+  ): TierRoute {
     if (intent?.signals !== undefined && intent.shortCircuit === 'image') {
       const vision = config.tiers.vision
       return { provider: vision.provider, model: vision.model }
@@ -248,8 +279,35 @@ export class AutotierRouter {
           : { provider: chainEntry.provider, model: chainEntry.model, effort: entry.effort }
       }
     }
-    if (entry.followSession) return { provider: entry.provider, model: entry.model }
-    return { provider: entry.provider, model: entry.model, effort: entry.effort }
+    if (tier === 'strong' && state.escalation !== undefined && state.escalation.until > now) {
+      // The ladder is a property of the tier configuration, so it is always
+      // computed from the cheap tier's own landing — computing it from the
+      // current request config would drift upward as each rung lands and make
+      // the rung counter skip entries.
+      const cheapLanding = this.tierRoute('cheap', config)
+      const ladder = escalationLadder(cheapLanding, cheapLanding, this.tierRoute('strong', config))
+      let index = Math.min(Math.max(state.escalation.rung - 1, 0), Math.max(ladder.length - 1, 0))
+      // Never lower the effort the session already carries: skip rungs that
+      // would step below the current request's effort.
+      const currentRank = effortRank(base?.reasoningEffort ?? cheapLanding.effort ?? 'low')
+      while (index < ladder.length - 1) {
+        const candidate = ladder[index]
+        const candidateRank = candidate?.route.effort === undefined ? EFFORT_LADDER.length : effortRank(candidate.route.effort)
+        if (candidateRank >= currentRank) break
+        index += 1
+      }
+      const rung = ladder[index]
+      if (rung !== undefined) return rung.route
+    }
+    return this.tierRoute(tier, config)
+  }
+
+  /** The configured landing of one tier, honouring `followSession`. */
+  private tierRoute(tier: TierId, config: ResolvedConfig): TierRoute {
+    const entry = tier === 'strong' ? config.tiers.strong : config.tiers.cheap
+    return entry.followSession
+      ? { provider: entry.provider, model: entry.model }
+      : { provider: entry.provider, model: entry.model, effort: entry.effort }
   }
 
   /** Resolve the tier for this step and apply it to the proposed configuration. */
@@ -298,6 +356,19 @@ export class AutotierRouter {
         confidence: intent.confidence,
       }
     }
+    // Attempt-first review: a cheap-run signal (error, denial, abort) owes one
+    // strong pass for the same input. The flag is consumed here so the review
+    // runs exactly once.
+    if (state.reviewOwed && !state.verified) {
+      state.verified = true
+      state.reviewOwed = false
+      decision = {
+        tier: 'strong',
+        source: 'escalation',
+        reason: 'attempt-first strong review',
+        confidence: 1,
+      }
+    }
     const proposal: RouteProposal = {
       agent,
       turn,
@@ -314,7 +385,7 @@ export class AutotierRouter {
     const tier = veto?.tier ?? decision.tier
     const source: RouteSource = veto === undefined || veto === null ? decision.source : 'manual'
     const reason = veto === undefined || veto === null ? decision.reason : `veto: ${veto.reason}`
-    const route = this.routeFor(tier, config, intent, state, now)
+    const route = this.routeFor(tier, config, intent, state, now, base)
     const applied = resolveRoute(base, route)
     if (state.appliedTier !== tier) {
       const from = state.appliedTier
@@ -338,6 +409,10 @@ export class AutotierRouter {
     const config = this.service.config()
     const signature = `${codeOf(error)}|${state.decision?.fingerprint ?? ''}`
     const now = Date.now()
+    // An attempt-first turn that hits a signal owes one strong review.
+    if (state.decision !== undefined && attemptBandApplies(config, state.decision) && !state.verified) {
+      state.reviewOwed = true
+    }
     const alreadyEscalated = escalationActive(state, now)
     const escalatedNow = noteFailure(state, signature, config, now)
     if (escalatedNow && !alreadyEscalated) {
@@ -401,24 +476,26 @@ export class AutotierRouter {
 
   /** Maintain the classifier counters and the plan-mode fallback fold. */
   private onSessionEvent(session: Session, event: SessionEvent): void {
-    const agent = this.agentOf(session)
-    if (agent === undefined) return
-    const state = this.states.for(agent)
+    const counters = this.counterFor(session)
     if (event.type === 'user/message') {
-      state.messageCount += 1
+      counters.messageCount += 1
       return
     }
     if (event.type === 'tool/call') {
       const name = (event.data as { name?: unknown }).name
-      if (typeof name === 'string' && !state.toolNames.includes(name)) state.toolNames.push(name)
+      if (typeof name === 'string' && !counters.toolNames.includes(name)) counters.toolNames.push(name)
       return
     }
     if (event.type === 'plan/mode') {
-      state.planActive = (event.data as { active?: unknown }).active === true
+      const agent = this.agentOf(session)
+      if (agent !== undefined) this.states.for(agent).planActive = (event.data as { active?: unknown }).active === true
       return
     }
     if (event.type === 'turn/end') {
       const reason = (event.data as { reason?: { kind?: unknown } }).reason?.kind
+      const agent = this.agentOf(session)
+      if (agent === undefined) return
+      const state = this.states.for(agent)
       if (reason === 'completed' && state.decision !== undefined) {
         this.service.posteriors().record(state.decision.fingerprint, state.appliedTier ?? 'cheap', true, Date.now())
       }
@@ -427,7 +504,7 @@ export class AutotierRouter {
 
   /** Resolve the agent that owns one session, when the registry is reachable. */
   private agentOf(session: Session): Agent | undefined {
-    const agents = this.ctx.get('agents') as { get(id: unknown): Agent | undefined } | undefined
+    const agents = this.ctx.get('agents')
     if (agents === undefined) return undefined
     try {
       return agents.get(session.id)
@@ -435,17 +512,4 @@ export class AutotierRouter {
       return undefined
     }
   }
-}
-
-/** Apply the effort-first escalation ladder to a failing configuration (used by tests and the guard). */
-export function applyEscalation(base: LlmCallConfig, config: ResolvedConfig, rung: number): LlmCallConfig {
-  const cheap = config.tiers.cheap.followSession
-    ? { provider: config.tiers.cheap.provider, model: config.tiers.cheap.model }
-    : { provider: config.tiers.cheap.provider, model: config.tiers.cheap.model, effort: config.tiers.cheap.effort }
-  const strong = config.tiers.strong.followSession
-    ? { provider: config.tiers.strong.provider, model: config.tiers.strong.model }
-    : { provider: config.tiers.strong.provider, model: config.tiers.strong.model, effort: config.tiers.strong.effort }
-  const ladder = escalationLadder(base, cheap, strong)
-  const target = ladder[Math.min(Math.max(rung, 0), Math.max(ladder.length - 1, 0))]
-  return target === undefined ? base : resolveRoute(base, target.route)
 }

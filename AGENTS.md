@@ -11,9 +11,12 @@ records repo-local decisions.
   (plural — the host service is `ctx.sessions`); `agents`, `subagents`,
   `systemPrompt`, `planMode`, `sessionProjections` and `sandboxPolicy` are read
   with `ctx.get()` and degrade when absent.
-- `src/config.ts` — Schemastery schema + the explicit `resolveConfig` judge (no
-  hidden `?? default` in callers). Object defaults are COMPLETE objects; the
-  adapter-owned effort vocabulary is `off | low | high | max` (there is no
+- `src/schema.ts` — the Schemastery schema and the raw (partial) config
+  interfaces it resolves. Kept free of executable logic so a schema module never
+  mixes function values into its declarations (the plugin-doctor K4 rule).
+- `src/config.ts` — the explicit `resolveConfig` judge (no hidden `?? default`
+  in callers) and the resolved interfaces. Object defaults are COMPLETE objects;
+  the adapter-owned effort vocabulary is `off | low | high | max` (there is no
   `medium`).
 - `src/service.ts` — `ctx.autotier` (`status()` and the live settings scope).
 - `src/types.ts` — shared vocabulary (tier ids, effort ids, routing modes,

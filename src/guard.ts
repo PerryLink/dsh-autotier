@@ -26,8 +26,17 @@ import type { TierId } from './types.ts'
 /** Tool argument keys that carry a shell command. */
 const COMMAND_KEYS = ['command', 'cmd', 'script'] as const
 
-/** Tool argument keys that carry a filesystem target. */
-const PATH_KEYS = ['file_path', 'path', 'target', 'file', 'filename'] as const
+/**
+ * Tool argument keys that carry a filesystem target. `file_path` is specific
+ * enough to trust on any tool; the looser keys are only read from tools whose
+ * name says they write, so a tool with an unrelated `target` argument (a window
+ * handle, a selector) cannot trip the path rules.
+ */
+const STRICT_PATH_KEYS = ['file_path'] as const
+const LOOSE_PATH_KEYS = ['path', 'target', 'file', 'filename'] as const
+
+/** Tool names whose `path`-like arguments are filesystem targets. */
+const WRITE_TOOL_PATTERN = /(?:write|edit|patch|create|delete|remove|move|copy|rename|save|apply|mkdir|touch)/iu
 
 /** The guard's verdict for one call. */
 export interface GuardVerdict {
@@ -71,11 +80,18 @@ function isProtectedPath(path: string, protectedPaths: readonly string[]): strin
   return undefined
 }
 
-/** Whether a command or path is whitelisted. */
+/** Whether a command or path is whitelisted (exact, or a path/word boundary prefix). */
 function isWhitelisted(value: string | undefined, toolName: string, whitelist: readonly string[]): boolean {
   if (whitelist.includes(toolName)) return true
   if (value === undefined) return false
-  return whitelist.some(entry => value === entry || value.startsWith(`${entry} `) || value.startsWith(entry))
+  return whitelist.some((entry) => {
+    if (value === entry) return true
+    const rest = value.slice(entry.length)
+    if (!value.startsWith(entry) || rest === '') return false
+    // A prefix only whitelists on a real boundary, so `/tmp/scratch` does not
+    // cover `/tmp/scratch-malicious`.
+    return /^[\s/\\]/u.test(rest)
+  })
 }
 
 /**
@@ -96,7 +112,8 @@ export function evaluateToolCall(input: GuardInput): GuardVerdict {
     return { action: 'allow', reason: '', rule: '', axis: 'none' }
   }
   const command = pick(input.args, COMMAND_KEYS)
-  const path = pick(input.args, PATH_KEYS)
+  const path = pick(input.args, STRICT_PATH_KEYS)
+    ?? (WRITE_TOOL_PATTERN.test(input.toolName) ? pick(input.args, LOOSE_PATH_KEYS) : undefined)
   if (isWhitelisted(command ?? path, input.toolName, config.guard.whitelist)) {
     return { action: 'allow', reason: '', rule: '', axis: 'none' }
   }

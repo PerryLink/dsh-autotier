@@ -39,7 +39,7 @@ export type {
 } from './types.ts'
 export { EFFORT_IDS, ROUTING_MODES, SCENARIOS, TIER_IDS } from './types.ts'
 export { AutotierService } from './service.ts'
-export { AutotierRouter, applyEscalation } from './routing.ts'
+export { AutotierRouter } from './routing.ts'
 export type { RouteProposal, RouteVeto, TierChange } from './routing.ts'
 export { AgentStateStore, registerTierProjection, TIER_PROJECTION_KEY } from './state.ts'
 export {
@@ -128,12 +128,13 @@ export function apply(ctx: Context, config: AutotierConfig = {}): void {
   registerGuardHook({ ctx, service, states })
   registerTierCommand(ctx, service, states)
   registerTierTools(ctx, { service, states })
-  if (resolved.guard.interopDefend === 'auto' && ctx.get('defend') !== undefined) {
+  if (resolved.guard.interopDefend === 'auto') {
     // Coexistence is deliberate: dsh-defend owns content scanning (injection,
-    // jailbreak, secrets) and the recursive-delete gate; autotier adds
+    // jailbreak, secrets) and its own recursive-delete gate; autotier adds
     // tier-conditional denial and escalation guidance. Neither weakens the
-    // other, and pass-through discipline keeps both in the chain.
-    ctx.logger.info('dsh-autotier: dsh-defend detected; running side by side (guard.interopDefend=auto)')
+    // other, and pass-through discipline keeps both in the chain. dsh-defend
+    // provides no service, so this is stated rather than detected.
+    ctx.logger.info('dsh-autotier: guard runs alongside dsh-defend when installed (guard.interopDefend=auto)')
   }
   const status = service.status()
   ctx.logger.info(

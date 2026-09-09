@@ -72,6 +72,27 @@ describe('guard verdicts', () => {
     expect(judge('write', { file_path: '/tmp/scratch/.env' }, 'cheap', pathConfig).action).toBe('allow')
   })
 
+  it('whitelists only on a real boundary, not a string prefix', () => {
+    const config = resolveConfig({ guard: { whitelist: ['/tmp/scratch'] } })
+    expect(judge('write', { file_path: '/tmp/scratch/.env' }, 'cheap', config).action).toBe('allow')
+    expect(judge('write', { file_path: '/tmp/scratch-malicious/.env' }, 'cheap', config).action).toBe('deny')
+    // A command entry whitelists that command on a word boundary.
+    const rm = resolveConfig({ guard: { whitelist: ['rm'] } })
+    expect(judge('bash', { command: 'rm -rf /' }, 'cheap', rm).action).toBe('allow')
+  })
+
+  it('reads loose path arguments only from write-shaped tools', () => {
+    // `file_path` is specific enough to trust on any tool.
+    expect(judge('write', { file_path: '/srv/.env' }).action).toBe('deny')
+    // A `target` argument on an unrelated tool (a window handle, a selector)
+    // must not trip the path rules.
+    expect(judge('screen_shot', { target: '/srv/.env' }).action).toBe('allow')
+    expect(judge('screen_shot', { target: '/srv/.ssh/id_rsa' }).action).toBe('allow')
+    // A write-shaped tool with the same loose key still trips them.
+    expect(judge('apply_patch', { path: '/srv/.ssh/id_rsa' }).action).toBe('deny')
+    expect(judge('delete_file', { target: '/srv/.env' }).action).toBe('deny')
+  })
+
   it('allows ordinary calls and unknown argument shapes', () => {
     expect(judge('read_file', { file_path: '/srv/app/src/index.ts' }).action).toBe('allow')
     expect(judge('bash', { command: 'ls -la' }).action).toBe('allow')

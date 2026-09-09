@@ -190,13 +190,43 @@ describe('real AgentLoop routing', () => {
     }
   })
 
-  it('escalates to the strong tier after two same-signature failures', async () => {
+  it('runs one strong review when the attempt-first band sees a signal', async () => {
+    const harness = await createLoopHarness({
+      intent: { attemptBand: { enabled: true, tauLow: 0.45 }, judge: { enabled: false } },
+    })
+    try {
+      // A message in the middle band starts cheap. Exactly one keyword hit
+      // scores 0.62, which sits inside [tauLow, ruleThreshold).
+      const band = 'fix it'
+      await say(harness, band)
+      expect(harness.adapter.calls.at(-1)?.model).toBe('cheap-model')
+      // ...and a failure on that turn owes exactly one strong review next.
+      harness.adapter.failures.set('cheap-model', 'SERVER')
+      await say(harness, band)
+      harness.adapter.failures.delete('cheap-model')
+      await say(harness, band)
+      expect(harness.adapter.calls.at(-1)?.model).toBe('strong-model')
+    } finally {
+      await harness.ctx.fiber.dispose()
+    }
+  })
+
+  it('walks the effort-first escalation ladder after recurring failures', async () => {
     const harness = await createLoopHarness()
     try {
       harness.adapter.failures.set('cheap-model', 'SERVER')
+      // Two same-signature failures arm the first rung: a stronger effort on
+      // the same model, which keeps the KV prefix and stays notice-free.
       await say(harness, 'Hello!')
       await say(harness, 'Hello!')
-      harness.adapter.failures.delete('cheap-model')
+      await say(harness, 'Hello!')
+      expect(harness.adapter.calls.at(-1)?.model).toBe('cheap-model')
+      expect(harness.adapter.calls.at(-1)?.effort).toBe('high')
+      // The next recurrence climbs to the ceiling of the cheap model, and the
+      // one after that finally pays for the model switch.
+      await say(harness, 'Hello!')
+      expect(harness.adapter.calls.at(-1)?.model).toBe('cheap-model')
+      expect(harness.adapter.calls.at(-1)?.effort).toBe('max')
       await say(harness, 'Hello!')
       expect(harness.adapter.calls.at(-1)?.model).toBe('strong-model')
       expect(harness.adapter.calls.at(-1)?.effort).toBe('high')

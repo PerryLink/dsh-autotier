@@ -34,10 +34,8 @@ export interface RouteState {
   judge: { failures: number; lastCall: number }
   /** Attempt-first band: the strong review has already run for this input. */
   verified: boolean
-  /** Tool names observed in the session, newest last (classifier signal). */
-  toolNames: string[]
-  /** Committed `user/message` count (classifier signal). */
-  messageCount: number
+  /** Attempt-first band: a cheap-run signal asked for one strong review. */
+  reviewOwed: boolean
   /** How many calls the guard denied for this agent. */
   denials: number
   /** The last rule the guard fired, for `/tier status`. */
@@ -57,8 +55,7 @@ export function createRouteState(): RouteState {
     fallback: undefined,
     judge: { failures: 0, lastCall: 0 },
     verified: false,
-    toolNames: [],
-    messageCount: 0,
+    reviewOwed: false,
     denials: 0,
     lastDenial: '',
   }
@@ -147,7 +144,7 @@ export function decideTier(input: DecideInput): Decision {
     }
   }
   const tier = withHysteresis(state, intent.tier, intent.confidence, config)
-  const source: RouteSource = intent.shortCircuit === 'explicit' ? 'rule' : 'judge'
+  const source: RouteSource = intent.shortCircuit !== undefined ? 'rule' : 'judge'
   const reason = tier === intent.tier
     ? intent.reasons.join('; ')
     : `hysteresis kept ${tier} (proposed ${intent.tier} at confidence ${intent.confidence.toFixed(2)})`

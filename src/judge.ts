@@ -135,8 +135,8 @@ export async function runJudge(
     }
   }
   const finish = assembler.finish
-  if (finish !== undefined && typeof finish === 'object' && 'error' in finish && finish.error !== undefined) {
-    return { ok: false, scenario: undefined, tier: undefined, detail: 'judge stream ended with an error' }
+  if (finish.kind === 'error' || finish.kind === 'aborted') {
+    return { ok: false, scenario: undefined, tier: undefined, detail: `judge stream ended with ${finish.kind}` }
   }
   const answer = assembler.blocks()
     .filter((block): block is Extract<ReturnType<BlockAssembler['blocks']>[number], { type: 'text' }> => block.type === 'text')

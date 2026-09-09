@@ -46,6 +46,8 @@ export function tierStatusTool({ service, states }: ToolServices): ToolDefinitio
           lastConfidence: { type: 'number' },
           escalated: { type: 'boolean' },
           planActive: { type: 'boolean' },
+          guardDenials: { type: 'integer' },
+          lastDenialRule: { type: 'string' },
         },
       },
       render: (_args, value) => textBlock(value),
@@ -65,6 +67,8 @@ export function tierStatusTool({ service, states }: ToolServices): ToolDefinitio
         lastConfidence: state?.decision?.confidence ?? 0,
         escalated: state === undefined ? false : escalationActive(state, Date.now()),
         planActive: state?.planActive ?? false,
+        guardDenials: state?.denials ?? 0,
+        lastDenialRule: state?.lastDenial ?? '',
       }
     },
   })
