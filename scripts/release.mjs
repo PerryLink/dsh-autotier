@@ -58,6 +58,10 @@ let changelog = readFileSync(changelogPath, 'utf8')
 const unreleased = '## [Unreleased]'
 if (!changelog.includes(unreleased)) {
   console.error(`CHANGELOG.md has no ${unreleased} section; add one with the release entries first`)
+  // The version bump above must not survive an aborted release: leaving it
+  // behind makes the next run refuse ("already at <version>") and ships a
+  // package.json that no tag matches.
+  git('checkout', '--', 'package.json', 'CHANGELOG.md')
   process.exit(1)
 }
 const date = new Date().toISOString().slice(0, 10)
