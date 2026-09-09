@@ -42,6 +42,10 @@ export interface RouteState {
   denials: number
   /** The last rule the guard fired, for `/tier status`. */
   lastDenial: string
+  /** `provider/model` this plugin last applied, for multi-router detection. */
+  lastProviderModel: string | undefined
+  /** Whether another layer was already reported for this agent. */
+  coexistenceWarned: boolean
 }
 
 /** A fresh per-agent state. */
@@ -61,6 +65,8 @@ export function createRouteState(): RouteState {
     probe: undefined,
     denials: 0,
     lastDenial: '',
+    lastProviderModel: undefined,
+    coexistenceWarned: false,
   }
 }
 

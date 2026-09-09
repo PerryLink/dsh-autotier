@@ -222,6 +222,31 @@ describe('real AgentLoop routing', () => {
     }
   })
 
+  it('reports a layer that overwrites the request configuration', async () => {
+    const harness = await createLoopHarness()
+    try {
+      await say(harness, 'Hello!')
+      // Drive the waterfall with a foreign base, exactly what an outer layer
+      // that won the request would hand us as the next proposal.
+      await harness.ctx.waterfall(
+        'agent/request',
+        { agent: harness.agent, turn: 2, step: 1, signal: new AbortController().signal },
+        async () => ({ provider: 'mock', model: 'other-model' }),
+      )
+      const execution = await harness.ctx.commands.execute(
+        harness.agent,
+        '/tier status',
+        [],
+        new AbortController().signal,
+      )
+      expect(execution?.result.kind).toBe('success')
+      const text = execution?.result.kind === 'success' ? execution.result.text ?? '' : ''
+      expect(text).toContain('coexistence')
+    } finally {
+      await harness.ctx.fiber.dispose()
+    }
+  })
+
   it('walks the effort-first escalation ladder after recurring failures', async () => {
     const harness = await createLoopHarness()
     try {

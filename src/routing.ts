@@ -34,6 +34,7 @@ import {
   type RouteState,
 } from './policy.ts'
 import { RoutePreflight } from './preflight.ts'
+import { SelectionSync } from './selection.ts'
 import type { AutotierService } from './service.ts'
 import type { AgentStateStore } from './state.ts'
 import { classifyFallback, EFFORT_LADDER, effortRank, escalationLadder, resolveRoute } from './tiers.ts'
@@ -124,6 +125,7 @@ export class AutotierRouter {
   /** Router-owned lifetime signal: aborts in-flight judge calls on unload. */
   private readonly lifetime = new AbortController()
   private readonly preflight: RoutePreflight
+  private readonly selection: SelectionSync
   private disposed = false
 
   /**
@@ -138,6 +140,7 @@ export class AutotierRouter {
       ctx: this.ctx,
       onDegrade: (_key, note) => this.ctx.logger.warn('dsh-autotier: %s', note),
     })
+    this.selection = new SelectionSync({ ctx: this.ctx, states: this.states })
     this.ctx.on('agent/inbox/inserted', payload => this.onInboxInserted(payload.agent, payload.message), { prepend: true })
     this.ctx.on('agent/request', (payload, next) => this.onRequest(payload.agent, payload.turn, payload.step, next), { prepend: true })
     this.ctx.on('agent/error', payload => this.onAgentError(payload.agent, payload.error))
@@ -442,6 +445,20 @@ export class AutotierRouter {
     // failing the request.
     const safeRoute = await this.preflight.sanitize(route, tier === 'strong' ? config.tiers.strong : config.tiers.cheap)
     const applied = resolveRoute(base, safeRoute)
+    // Multi-router detection: the loop rebuilds each request from the last
+    // logged header, so an unexpected provider/model means a layer outside this
+    // plugin owns the request configuration.
+    const baseKey = `${base.provider}/${base.model}`
+    if (state.lastProviderModel !== undefined && state.lastProviderModel !== baseKey && !state.coexistenceWarned) {
+      state.coexistenceWarned = true
+      this.ctx.logger.warn(
+        'dsh-autotier: the request configuration was changed outside this plugin (expected %s, saw %s); another router may be composed. /tier status reports this.',
+        state.lastProviderModel,
+        baseKey,
+      )
+    }
+    state.lastProviderModel = `${safeRoute.provider}/${safeRoute.model}`
+    this.selection.noteRoute(safeRoute)
     if (state.appliedTier !== tier) {
       const from = state.appliedTier
       state.appliedTier = tier

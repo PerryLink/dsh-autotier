@@ -37,6 +37,7 @@ function statusText(service: AutotierService, state: ReturnType<AgentStateStore[
   if (state.fallback !== undefined) lines.push(`fallback: chain entry ${String(state.fallback.index + 1)}`)
   if (state.planActive) lines.push('plan mode: active (strong tier)')
   if (state.denials > 0) lines.push(`guard denials: ${String(state.denials)} (last rule ${state.lastDenial})`)
+  if (state.coexistenceWarned) lines.push('coexistence: another layer changed the request configuration (see logs)')
   return lines.join('\n')
 }
 
