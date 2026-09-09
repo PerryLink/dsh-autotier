@@ -1,0 +1,15 @@
+# Build output
+lib/
+*.tsbuildinfo
+
+# Dependencies
+node_modules/
+
+# Coverage
+coverage/
+
+# Packed tarballs
+*.tgz
+
+# Evidence / scratch output
+.evidence/

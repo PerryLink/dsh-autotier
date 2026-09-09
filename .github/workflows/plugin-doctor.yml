@@ -1,0 +1,33 @@
+name: plugin-doctor
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  doctor:
+    name: dsh-plugin-doctor (static R/K)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        if: hashFiles('pnpm-lock.yaml') != '' && hashFiles('package-lock.json') == ''
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: |
+          if [ -f package-lock.json ]; then npm ci
+          elif [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile
+          else npm install --no-audit --no-fund
+          fi
+      - name: Build (if present)
+        run: npm run build --if-present || true
+      - name: Run dsh-plugin-doctor
+        run: 'npx --yes @perrylink/dsh-plugin-doctor@0.1.4 --repo . --no-smoke --only "静态·包结构,静态·cordis 契约扫描"'

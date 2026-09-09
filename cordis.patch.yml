@@ -1,0 +1,117 @@
+# dsh-autotier: automatic model-tier routing for DeepSeek Harness.
+#
+# One user instruction enters, one tier decision comes out. Complex intent is
+# planned on the strong tier and implemented on the cheap tier; simple intent is
+# designed and implemented on the cheap tier directly. High-risk tool calls are
+# denied while the cheap tier executes, and repeated failures escalate to the
+# strong tier with a TTL fallback. Everything below is a Schemastery-validated
+# config field; an invalid value fails loudly at load time.
+- insert:
+    - id: autotier
+      name: dsh-autotier
+      # `sessions` is plural: the host service is `ctx.sessions`, and a
+      # non-existent name here would leave this plugin PENDING forever.
+      inject: [settings, llm, tools, commands, sessions]
+      config:
+        # ---- tiers ----------------------------------------------------------
+        tiers:
+          # The planning/review tier. `effort` is the adapter-owned vocabulary
+          # off | low | high | max; `medium` does not exist and would fail every
+          # request with UNSUPPORTED_REASONING_EFFORT.
+          strong:
+            provider: deepseek-official
+            model: deepseek-v4-pro
+            effort: high
+            # false = this tier's effort overrides the session's own.
+            followSession: false
+            # Ordered fallback landings (provider/model) used when the tier is
+            # unavailable. The chain is deduplicated and must not name the tier
+            # itself; validation refuses a self-referential chain at load time.
+            fallback: []
+          # The implementation tier.
+          cheap:
+            provider: deepseek-official
+            model: deepseek-v4-flash
+            effort: low
+            # true = inherit the session's effort, so an explicit user choice
+            # still wins inside the cheap tier.
+            followSession: true
+            fallback: []
+          # Image-capable landing: a turn carrying images is routed here,
+          # because a text-only model silently substitutes image placeholders.
+          vision:
+            provider: deepseek-official
+            model: deepseek-v4-flash-vision-exp
+        # ---- intent classification -----------------------------------------
+        intent:
+          # Confidence at or above which the deterministic rule layer decides
+          # without calling the judge model.
+          ruleThreshold: 0.7
+          # Attempt-first middle band: scores in [tauLow, ruleThreshold) start on
+          # the cheap tier and escalate on a signal. Disabled until the
+          # calibration corpus lands.
+          attemptBand:
+            enabled: false
+            tauLow: 0.45
+          # Application-side double threshold that stops tier flapping between
+          # turns; the decision threshold above is unchanged.
+          hysteresis:
+            toStrong: 0.8
+            toCheap: 0.6
+          # Declarative rule table. Rules are evaluated by descending priority;
+          # the first match wins, and a guard denial always outranks a rule.
+          # `when.patterns` are regular expressions matched against the user
+          # text, `when.tools` against the tool name, `when.cwd` against the
+          # workspace path (empty = no constraint). `tier` is cheap | strong.
+          rules: []
+          # The low-confidence judge: a cheap model classifies intent only.
+          judge:
+            enabled: true
+            # Empty = pick the first catalog model whose id contains "flash".
+            model: ''
+            temperature: 0
+            maxTokens: 16
+            cooldownMs: 30000
+            timeoutMs: 2000
+            # Consecutive judge failures after which the current turn skips the
+            # judge instead of paying its timeout on every request.
+            unavailableSkip: 2
+          # Per-scenario switches: coding, review, planning, retrieval, batch,
+          # daily, longText, multimodal.
+          scenarios:
+            coding: true
+            review: true
+            planning: true
+            retrieval: true
+            batch: true
+            daily: true
+            longText: true
+            multimodal: true
+          # Ambiguity arbitration: cost-first | quality-first | balanced.
+          costMode: balanced
+        # ---- high-risk guard ------------------------------------------------
+        guard:
+          enabled: true
+          # Tiers whose execution the guard protects (cheap only).
+          tiers: [cheap]
+          # Commands, tools or path prefixes that never trip the guard.
+          whitelist: []
+          # Self-modification surfaces that force strong-tier review.
+          protectedPaths: ['.dsh', 'AGENTS.md', 'package.json', '.github/workflows']
+          # Relationship with dsh-defend: auto audits coexistence, none stays
+          # silent. The guard never weakens dsh-defend.
+          interopDefend: auto
+        # ---- failure escalation ---------------------------------------------
+        escalation:
+          # Failures within windowMs that reach this count escalate the tier.
+          threshold: 2
+          windowMs: 60000
+          # How long an escalation stays in effect before falling back.
+          ttlMs: 180000
+          # TTL used after a fallback landing was taken.
+          fallbackTtlMs: 300000
+          # Count same-signature recurrences instead of every failure.
+          signature: true
+        # auto | strong | cheap | delegated | off. `delegated` means the session
+        # carries an explicit model selection that autotier must not fight.
+        routingMode: auto
