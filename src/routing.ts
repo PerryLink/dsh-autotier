@@ -299,15 +299,24 @@ export class AutotierRouter {
       const rung = ladder[index]
       if (rung !== undefined) return rung.route
     }
-    return this.tierRoute(tier, config)
+    return this.tierRoute(tier, config, base)
   }
 
-  /** The configured landing of one tier, honouring `followSession`. */
-  private tierRoute(tier: TierId, config: ResolvedConfig): TierRoute {
+  /**
+   * The configured landing of one tier. `followSession` means the session's own
+   * effort wins when it has one; when it has none, the tier's configured effort
+   * is the floor (an omitted effort would fall through to the adapter default,
+   * which is the strongest level).
+   */
+  private tierRoute(tier: TierId, config: ResolvedConfig, base?: LlmCallConfig): TierRoute {
     const entry = tier === 'strong' ? config.tiers.strong : config.tiers.cheap
-    return entry.followSession
-      ? { provider: entry.provider, model: entry.model }
-      : { provider: entry.provider, model: entry.model, effort: entry.effort }
+    if (!entry.followSession) {
+      return { provider: entry.provider, model: entry.model, effort: entry.effort }
+    }
+    if (base?.reasoningEffort === undefined && entry.effort !== undefined) {
+      return { provider: entry.provider, model: entry.model, effort: entry.effort }
+    }
+    return { provider: entry.provider, model: entry.model }
   }
 
   /** Resolve the tier for this step and apply it to the proposed configuration. */

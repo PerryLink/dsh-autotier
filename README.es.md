@@ -20,7 +20,7 @@ strong con un TTL de retorno.
 | Harness | Estado |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible (es lo que CI verifica y lo que instala el flujo compat) |
-| `0.1.3-alpha.1` y líneas `0.1.x` posteriores | compatible; el `typecheck` local resuelve las caras de tipo del checkout |
+| `0.1.5-alpha.1` (la línea actual del checkout) | verificado por tipos contra sus caras publicadas; el smoke de extremo a extremo corre en `0.1.2-rc.1` |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
 
 El plugin vive solo en el plano host y no necesita un preset propio: la fila host

@@ -51,8 +51,9 @@ records repo-local decisions.
 
 ## Config
 
-Schema in `src/config.ts`; `cordis.patch.yml` documents the same keys inline;
-the five-language READMEs carry the user-facing table.
+Schema in `src/schema.ts` (judged by `src/config.ts`); `cordis.patch.yml`
+documents the same keys inline; the five-language READMEs carry the user-facing
+table.
 `package.json#dshWorkshop` is the omdsh-workshop-package/v1 intake manifest
 (declarations only — evidence paths stay null until their adapter runs).
 

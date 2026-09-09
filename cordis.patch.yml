@@ -63,6 +63,14 @@
           # `when.patterns` are regular expressions matched against the user
           # text, `when.tools` against the tool name, `when.cwd` against the
           # workspace path (empty = no constraint). `tier` is cheap | strong.
+          # Example entry:
+          #   - id: plan-first
+          #     when:
+          #       patterns: ['^plan\\b', 'architecture']
+          #       tools: []
+          #       cwd: ''
+          #     tier: strong
+          #     priority: 10
           rules: []
           # The low-confidence judge: a cheap model classifies intent only.
           judge:

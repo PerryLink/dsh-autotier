@@ -76,9 +76,14 @@ describe('resolveRoute', () => {
     expect(next.temperature).toBe(0.3)
   })
 
-  it('drops the effort when the target follows the session', () => {
-    const next = resolveRoute(base, { provider: 'deepseek-official', model: 'deepseek-v4-pro' })
-    expect('reasoningEffort' in next).toBe(false)
+  it('followSession carries the request effort instead of dropping it', () => {
+    const withEffort = resolveRoute(base, { provider: 'deepseek-official', model: 'deepseek-v4-pro' })
+    expect(withEffort.reasoningEffort).toBe('low')
+    const withoutEffort = resolveRoute(
+      { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
+      { provider: 'deepseek-official', model: 'deepseek-v4-pro' },
+    )
+    expect('reasoningEffort' in withoutEffort).toBe(false)
   })
 
   it('routeEquals compares the full triple', () => {

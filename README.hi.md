@@ -18,7 +18,7 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 | Harness | स्थिति |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | संगत (CI इसी की जाँच करता है और compat वर्कफ़्लो इसे इंस्टॉल करता है) |
-| `0.1.3-alpha.1` और उसके बाद की `0.1.x` लाइनें | संगत; स्थानीय `typecheck` checkout के type faces देखता है |
+| `0.1.5-alpha.1` (वर्तमान checkout लाइन) | इसके प्रकाशित type faces के विरुद्ध टाइप-जाँच; end-to-end smoke `0.1.2-rc.1` पर चलता है |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer आधार |
 
 यह प्लगइन केवल host plane पर रहता है और अपना preset नहीं माँगता: host पंक्ति

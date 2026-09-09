@@ -19,7 +19,7 @@ retorno.
 | Harness | Estado |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatível (é o que a CI verifica e o que o fluxo compat instala) |
-| `0.1.3-alpha.1` e linhas `0.1.x` posteriores | compatível; o `typecheck` local resolve as faces de tipo do checkout |
+| `0.1.5-alpha.1` (a linha atual do checkout) | verificado por tipos contra suas faces publicadas; o smoke ponta a ponta roda em `0.1.2-rc.1` |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
 
 O plugin vive apenas no plano host e não precisa de preset próprio: a linha host

@@ -45,7 +45,7 @@ export function routeEquals(a: TierRoute, b: TierRoute): boolean {
 }
 
 /** One adapter-owned effort id as the LLM call config expects it (branded at the seam). */
-function brandedEffort(effort: EffortId): NonNullable<LlmCallConfig['reasoningEffort']> {
+function brandedEffort(effort: string): NonNullable<LlmCallConfig['reasoningEffort']> {
   // The adapter's `ReasoningEffortId` is a branded string; the brand is opaque
   // by design, and our vocabulary is validated against it before it gets here.
   return effort as unknown as NonNullable<LlmCallConfig['reasoningEffort']>
@@ -66,7 +66,11 @@ export function resolveRoute(base: LlmCallConfig, target: TierRoute): LlmCallCon
   const sameLanding = base.provider === target.provider && base.model === target.model
   if (sameLanding && (target.effort === undefined || base.reasoningEffort === target.effort)) return base
   const next: LlmCallConfig = { provider: target.provider, model: target.model }
-  if (target.effort !== undefined) next.reasoningEffort = brandedEffort(target.effort)
+  // An absent target effort means "follow the session": carry the effort the
+  // request already carries instead of dropping it (a dropped effort silently
+  // falls back to the adapter default, which is the strongest one).
+  const effort = target.effort ?? base.reasoningEffort
+  if (effort !== undefined) next.reasoningEffort = brandedEffort(effort)
   if (base.temperature !== undefined) next.temperature = base.temperature
   if (base.maxTokens !== undefined) next.maxTokens = base.maxTokens
   if (base.stop !== undefined) next.stop = base.stop

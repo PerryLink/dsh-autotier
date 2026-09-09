@@ -15,7 +15,7 @@ DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个
 | Harness | 状态 |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | 兼容（CI 的类型检查与 compat 工作流安装的就是它） |
-| `0.1.3-alpha.1` 及后续 `0.1.x` 线 | 兼容；本地 `typecheck` 对照 checkout 的类型面 |
+| `0.1.5-alpha.1`（当前宿主 checkout 线） | 对照其已发布类型面做类型检查；端到端冒烟跑在 `0.1.2-rc.1` 上 |
 | `@deepseek-ai/cordis` `^4.0.2`、`@deepseek-ai/schemastery` `^3.18.2` | peer 基线 |
 
 本插件只驻留 host 平面，不需要自带 agent preset：host 行对所有会话生效。

@@ -7,6 +7,7 @@
  * @module dsh-autotier/tests/config.spec
  */
 
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { Config, resolveConfig, validateConfig } from '../src/index.ts'
 
@@ -163,5 +164,33 @@ describe('resolveConfig', () => {
   it('validateConfig is the same judgement as resolveConfig', () => {
     expect(() => { validateConfig({ escalation: { threshold: 0 } }) }).toThrow(/escalation\.threshold/u)
     expect(() => { validateConfig({ routingMode: 'off' }) }).not.toThrow()
+  })
+})
+
+describe('cordis.patch.yml documentation parity', () => {
+  /** Collect every field name the schema tree declares. */
+  function schemaKeys(node: unknown, out = new Set<string>()): Set<string> {
+    if (node === null || typeof node !== 'object') return out
+    const record = node as { dict?: Record<string, unknown>; list?: unknown[]; inner?: unknown; refs?: Record<string, unknown> }
+    for (const [key, child] of Object.entries(record.dict ?? {})) {
+      out.add(key)
+      schemaKeys(child, out)
+    }
+    for (const child of record.list ?? []) schemaKeys(child, out)
+    schemaKeys(record.inner, out)
+    for (const child of Object.values(record.refs ?? {})) schemaKeys(child, out)
+    return out
+  }
+
+  it('documents every schema field in cordis.patch.yml', () => {
+    const yml = readFileSync(new URL('../cordis.patch.yml', import.meta.url), 'utf8')
+    // Both live keys and commented examples count: the file documents the shape
+    // of list-element fields (intent.rules[].when...) in a comment.
+    const documented = new Set(
+      [...yml.matchAll(/^\s*#?\s*-?\s*([a-zA-Z][a-zA-Z0-9]*):/gmu)].map(match => match[1]!),
+    )
+    const declared = [...schemaKeys(Config.toJSON())]
+    const missing = declared.filter(key => !documented.has(key))
+    expect(missing, `undocumented config keys: ${missing.join(', ')}`).toEqual([])
   })
 })
