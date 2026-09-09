@@ -97,6 +97,7 @@ describe('real Loader composition', () => {
       '    provider: deepseek-official',
       '    model: deepseek-v4-pro',
       '    effort: high',
+      '    followSession: false',
     ]))
     const evidence = run(process.execPath, [runner, configPath], repositoryRoot)
     expect(evidence.status, `invalid config unexpectedly mounted:\n${evidence.stderr}`).not.toBe(0)

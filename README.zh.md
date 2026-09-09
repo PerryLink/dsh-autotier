@@ -154,9 +154,10 @@ dsh plugin --profile web remove dsh-autotier
   `autotier` 命名空间。
 - **网络** —— 唯一的出站流量是裁判调用，走正常的 `ctx.llm` 路径与所配置的
   provider。
-- **会话日志** —— 路由决策与守卫拒绝在仍接受插件事件的 harness 线路上以普通
-  会话事件追加；`0.1.2-alpha.1` 起词表 fail-closed，留痕降级为插件 logger 与
-  `autotier/tier-changed` 事件。
+- **会话日志** —— 本插件不追加任何自定义会话事件。路由留痕 = 插件 logger 与
+  实时 `autotier/tier-changed` 总线事件；唯一的写入是 plan-mode 服务缺失时回退
+  追加的 `plan/mode`。`0.1.2-alpha.1` 起自定义事件类型 fail-closed，因此不会留下
+  插件自有的持久记录。
 - **凭据** —— 本插件不读取、不记录、不存储任何凭据。
 
 ## 安全边界

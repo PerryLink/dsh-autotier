@@ -49,8 +49,8 @@ function statusText(service: AutotierService, state: ReturnType<AgentStateStore[
 export function registerTierCommand(ctx: Context, service: AutotierService, states: AgentStateStore): void {
   ctx.commands.register({
     name: 'tier',
-    description: 'Show or set this session\'s model tier (auto | strong | cheap | off | status).',
-    input: { hint: 'auto | strong | cheap | off | status' },
+    description: 'Show or set this session\'s model tier (auto | strong | cheap | delegated | off | status).',
+    input: { hint: 'auto | strong | cheap | delegated | off | status' },
     handler: ({ agent, rawInput }): CommandResult => {
       const argument = rawInput.trim().toLowerCase()
       const state = states.for(agent)

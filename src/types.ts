@@ -97,7 +97,11 @@ export interface RouteDecision {
   readonly reason: string
 }
 
-/** Read-only status snapshot served by `ctx.autotier` and `/tier status`. */
+/**
+ * Service Definition (contract layer): the read-only status snapshot served by
+ * `ctx.autotier.status()` and rendered by `/tier status` and the `tier_status`
+ * tool. Third-party plugins may depend on this shape.
+ */
 export interface AutotierStatus {
   /** Current routing mode. */
   readonly mode: RoutingMode
@@ -113,6 +117,4 @@ export interface AutotierStatus {
     readonly fallbackTtlMs: number
     readonly signature: boolean
   }
-  /** Whether a `/tier` override is active and, if so, which mode. */
-  readonly override: RoutingMode | undefined
 }

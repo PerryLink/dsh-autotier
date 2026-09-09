@@ -165,10 +165,11 @@ refused at save time and the last good policy stays in effect.
   shared settings service (the `autotier` namespace).
 - **Network** — the only outbound traffic is the judge call, which goes through
   the normal `ctx.llm` path and the configured provider.
-- **Session log** — routing decisions and guard denials are appended as
-  ordinary session events on harness lines that still accept plugin events; on
-  `0.1.2-alpha.1` and later the vocabulary is fail-closed, so the trail degrades
-  to the plugin logger and the `autotier/tier-changed` event.
+- **Session log** — the plugin appends no custom session events. The routing
+  trail is the plugin logger plus the live `autotier/tier-changed` bus event;
+  the only append it makes is the `plan/mode` fallback when the plan-mode
+  service is absent. Custom event types are fail-closed on `0.1.2-alpha.1` and
+  later, so no durable plugin-owned record is written.
 - **Secrets** — no credential is read, logged or stored by this plugin.
 
 ## Security boundaries

@@ -137,14 +137,30 @@ export const DEFAULT_VISION = {
   model: 'deepseek-v4-flash-vision-exp',
 }
 
-/** One tier schema; complete objects are required for `.default()`. */
-const TierSchema = z.object({
-  provider: z.string().default('deepseek-official'),
-  model: z.string().default('deepseek-v4-flash'),
+/**
+ * One tier schema per tier, so a partially-specified tier gets the same
+ * per-field defaults as the whole-object default (a shared schema would make
+ * `Config({ tiers: { cheap: { model } } })` disagree with `resolveConfig` on
+ * `followSession` and `effort`).
+ */
+const strongTier = z.object({
+  provider: z.string().default(DEFAULT_STRONG.provider),
+  model: z.string().default(DEFAULT_STRONG.model),
   // Adapter-owned vocabulary: off | low | high | max. A value outside this set
   // is a dead configuration (every request fails with UNSUPPORTED_REASONING_EFFORT).
-  effort: z.union([...EFFORT_IDS]).default('low'),
-  followSession: z.boolean().default(false),
+  effort: z.union([...EFFORT_IDS]).default(DEFAULT_STRONG.effort),
+  followSession: z.boolean().default(DEFAULT_STRONG.followSession),
+  fallback: z.array(z.object({
+    provider: z.string().default('deepseek-official'),
+    model: z.string().default(''),
+  })).default([]),
+})
+
+const cheapTier = z.object({
+  provider: z.string().default(DEFAULT_CHEAP.provider),
+  model: z.string().default(DEFAULT_CHEAP.model),
+  effort: z.union([...EFFORT_IDS]).default(DEFAULT_CHEAP.effort),
+  followSession: z.boolean().default(DEFAULT_CHEAP.followSession),
   fallback: z.array(z.object({
     provider: z.string().default('deepseek-official'),
     model: z.string().default(''),
@@ -154,8 +170,8 @@ const TierSchema = z.object({
 /** Schemastery schema: the loader validates and fills defaults before `apply`. */
 export const Config: z<Config> = z.object({
   tiers: z.object({
-    strong: TierSchema.default({ ...DEFAULT_STRONG, fallback: [] }),
-    cheap: TierSchema.default({ ...DEFAULT_CHEAP, fallback: [] }),
+    strong: strongTier.default({ ...DEFAULT_STRONG, fallback: [] }),
+    cheap: cheapTier.default({ ...DEFAULT_CHEAP, fallback: [] }),
     vision: z.object({
       provider: z.string().default('deepseek-official'),
       model: z.string().default('deepseek-v4-flash-vision-exp'),

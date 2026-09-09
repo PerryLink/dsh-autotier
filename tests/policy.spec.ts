@@ -8,7 +8,6 @@
 import { describe, expect, it } from 'vitest'
 import { resolveConfig, type ResolvedConfig } from '../src/config.ts'
 import type { IntentResult } from '../src/intent.ts'
-import { PosteriorTable } from '../src/intent.ts'
 import {
   attemptBandApplies,
   createRouteState,
@@ -49,17 +48,17 @@ function decide(overrides: {
   state?: ReturnType<typeof createRouteState>
   classification?: IntentResult
   rule?: { id: string; tier: 'cheap' | 'strong' } | null
-  posteriors?: PosteriorTable
+  probe?: 'cheap' | 'strong'
   override?: ReturnType<typeof createRouteState>['override']
   now?: number
 }) {
   const state = overrides.state ?? createRouteState()
+  if (overrides.probe !== undefined) state.probe = overrides.probe
   return decideTier({
     config: overrides.config ?? resolveConfig(undefined),
     state,
     intent: overrides.classification ?? intent('cheap', 0.9),
     rule: overrides.rule ?? null,
-    posteriors: overrides.posteriors ?? new PosteriorTable(),
     override: overrides.override,
     now: overrides.now ?? 1_000,
   })
@@ -98,9 +97,7 @@ describe('decideTier precedence', () => {
   })
 
   it('honours a posterior verdict above the classifier', () => {
-    const posteriors = new PosteriorTable({ coldStart: 2, epsilon: 0 })
-    for (let index = 0; index < 4; index += 1) posteriors.record('coding|0|0', 'cheap', index < 1, index)
-    const decision = decide({ posteriors, classification: intent('cheap', 0.95) })
+    const decision = decide({ probe: 'strong', classification: intent('cheap', 0.95) })
     expect(decision.tier).toBe('strong')
     expect(decision.source).toBe('posterior')
   })
@@ -116,6 +113,7 @@ describe('hysteresis', () => {
   it('does not switch cheap -> strong below toStrong', () => {
     const state = createRouteState()
     state.appliedTier = 'cheap'
+    state.appliedSource = 'judge'
     const decision = decide({ state, classification: intent('strong', 0.7) })
     expect(decision.tier).toBe('cheap')
     expect(decision.reason).toContain('hysteresis')
@@ -124,12 +122,14 @@ describe('hysteresis', () => {
   it('switches cheap -> strong at or above toStrong', () => {
     const state = createRouteState()
     state.appliedTier = 'cheap'
+    state.appliedSource = 'judge'
     expect(decide({ state, classification: intent('strong', 0.8) }).tier).toBe('strong')
   })
 
   it('does not switch strong -> cheap at or above toCheap', () => {
     const state = createRouteState()
     state.appliedTier = 'strong'
+    state.appliedSource = 'judge'
     const decision = decide({ state, classification: intent('cheap', 0.65) })
     expect(decision.tier).toBe('strong')
   })
@@ -137,12 +137,25 @@ describe('hysteresis', () => {
   it('switches strong -> cheap below toCheap', () => {
     const state = createRouteState()
     state.appliedTier = 'strong'
+    state.appliedSource = 'judge'
     expect(decide({ state, classification: intent('cheap', 0.59) }).tier).toBe('cheap')
+  })
+
+  it('does not damp the return from an escalation or plan-mode decision', () => {
+    // The anchor was set by a deliberate source, so a healthy cheap verdict
+    // must win immediately (requirement: strong plans, cheap implements).
+    for (const source of ['escalation', 'plan-mode', 'manual', 'rule'] as const) {
+      const state = createRouteState()
+      state.appliedTier = 'strong'
+      state.appliedSource = source
+      expect(decide({ state, classification: intent('cheap', 0.92) }).tier).toBe('cheap')
+    }
   })
 
   it('damps a flapping signal across turns', () => {
     const state = createRouteState()
     state.appliedTier = 'cheap'
+    state.appliedSource = 'judge'
     // 0.75 < toStrong: stays cheap; 0.65 >= toCheap: still stays cheap.
     for (const confidence of [0.75, 0.65, 0.72, 0.61]) {
       decide({ state, classification: intent('strong', confidence) })

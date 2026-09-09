@@ -89,11 +89,24 @@ function pick(args: unknown, keys: readonly string[]): string | undefined {
   return undefined
 }
 
-/** Whether one path sits inside a configured protected surface. */
+/**
+ * Whether a path sits inside a configured protected surface. Windows resolves
+ * case-insensitively and strips trailing dots/spaces from each segment, so the
+ * comparison normalizes both before matching; otherwise `PACKAGE.JSON` and
+ * `package.json.` would slip past the guard.
+ */
 function isProtectedPath(path: string, protectedPaths: readonly string[]): string | undefined {
-  const normalized = path.replace(/\\/gu, '/')
+  const normalize = (value: string): string => {
+    const slashed = value.replace(/\\/gu, '/')
+    if (process.platform !== 'win32') return slashed
+    return slashed
+      .split('/')
+      .map(segment => segment.replace(/[. ]+$/u, '').toLowerCase())
+      .join('/')
+  }
+  const normalized = normalize(path)
   for (const entry of protectedPaths) {
-    const needle = entry.replace(/\\/gu, '/').replace(/^\.\//u, '')
+    const needle = normalize(entry).replace(/^\.\//u, '')
     if (normalized === needle || normalized.endsWith(`/${needle}`) || normalized.includes(`/${needle}/`)) return entry
   }
   return undefined
@@ -131,8 +144,12 @@ export function evaluateToolCall(input: GuardInput): GuardVerdict {
     return { action: 'allow', reason: '', rule: '', axis: 'none' }
   }
   const command = pick(input.args, COMMAND_KEYS)
-  const path = pick(input.args, STRICT_PATH_KEYS)
-    ?? (WRITE_TOOL_PATTERN.test(input.toolName) ? pick(input.args, LOOSE_PATH_KEYS) : undefined)
+  // The path axis only applies to tools that write: a `read` of package.json or
+  // AGENTS.md is routine cheap-tier work, and upstream's rule set is explicit
+  // that reads are never intercepted.
+  const path = WRITE_TOOL_PATTERN.test(input.toolName)
+    ? pick(input.args, STRICT_PATH_KEYS) ?? pick(input.args, LOOSE_PATH_KEYS)
+    : undefined
   if (isWhitelisted(command ?? path, input.toolName, config.guard.whitelist)) {
     return { action: 'allow', reason: '', rule: '', axis: 'none' }
   }
@@ -236,14 +253,30 @@ export function registerGuardHook({ ctx, service, states }: GuardHookOptions): v
       }
       return { kind: 'deny', reason: verdict.reason }
     } catch (error) {
-      // A broken guard must not become an open door, and must not kill the
-      // session: escalate to the strong tier and let the call proceed.
-      ctx.logger.error('dsh-autotier: guard malfunction (%o); escalating to the strong tier', error)
+      // A broken guard is fail-closed for the call it was judging: the agent is
+      // forced onto the strong tier (where the guard does not apply) and the
+      // current call is denied. Letting it through would turn one defect into an
+      // open door, which is exactly what this guard exists to prevent.
+      ctx.logger.error('dsh-autotier: guard malfunction (%o); forcing escalation and denying the call', error)
       if (agent !== undefined) {
         const state = states.for(agent)
-        noteFailure(state, `guard|${String(error)}`, service.config(), Date.now())
+        const config = service.config()
+        const now = Date.now()
+        noteFailure(state, `guard|${String(error)}`, config, now)
+        // Force the escalation immediately: one malfunction is enough.
+        state.escalation = {
+          count: config.escalation.threshold,
+          signature: `guard|${String(error)}`,
+          until: now + config.escalation.ttlMs,
+          rung: (state.escalation?.rung ?? 0) + 1,
+          lastAt: now,
+        }
       }
-      return next()
+      return {
+        kind: 'deny',
+        reason: 'dsh-autotier guard: the guard itself failed, so this call was denied. '
+          + 'The session is escalated to the strong tier — re-run the call there.',
+      }
     }
   }, { prepend: true })
 }

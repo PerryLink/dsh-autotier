@@ -144,7 +144,7 @@ export const FALLBACK_PERMANENT_CODES = [
 ] as const
 
 /** Failure codes owned by `dsh-llm-retry` first: switch the chain only after retries are exhausted. */
-export const FALLBACK_TRANSIENT_CODES = ['RATE_LIMIT', 'SERVER', 'TRANSPORT'] as const
+export const FALLBACK_TRANSIENT_CODES = ['RATE_LIMIT', 'SERVER', 'TIMEOUT', 'TRANSPORT'] as const
 
 /** Failure codes that must never switch the model. */
 export const FALLBACK_IGNORE_CODES = [

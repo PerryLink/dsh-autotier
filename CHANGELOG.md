@@ -64,10 +64,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   install, `--dump-config` activation assertion, keyless headless smoke,
   uninstall rollback), `release.yml` (npm provenance + GitHub Release),
   `scorecard.yml` and `plugin-doctor.yml`.
-- Test suites (137 cases): config schema and cross-field resolution, the
+- Test suites (153 cases): config schema and cross-field resolution, the
   function-plugin contract, fiber-disposal lifecycle over the real host
   services, a real Loader composition over a temporary `cordis.yml`, the guard
-  rule table with a 5,909-command upstream-equivalence harness, the classifier
+  rule table with a 5,909-command upstream-equivalence harness (the port itself
+  carries 30 cases, 14 of them case-for-case upstream ports), the classifier
   and posterior matrix, the decision state machine, and a real AgentLoop
   integration suite covering simple/complex routing, the `/tier` override,
   escalation after two same-signature failures, fallback-chain switching and the

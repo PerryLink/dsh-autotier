@@ -168,10 +168,11 @@ cruzado é recusada ao salvar e a última política válida continua em vigor.
   de settings (o namespace `autotier`).
 - **Rede** — o único tráfego de saída é a chamada ao juiz, que passa pelo caminho
   normal de `ctx.llm` e pelo provider configurado.
-- **Log de sessão** — decisões de roteamento e negações do guard são anexadas como
-  eventos de sessão comuns nas linhas do harness que ainda aceitam eventos de
-  plugin; a partir de `0.1.2-alpha.1` o vocabulário é fail-closed e o rastro
-  degrada para o logger do plugin e o evento `autotier/tier-changed`.
+- **Log de sessão** — o plugin não anexa eventos de sessão próprios. O rastro de
+  roteamento é o logger do plugin mais o evento vivo `autotier/tier-changed`; a
+  única anexação é o `plan/mode` de reserva quando o serviço de modo plano não
+  está disponível. Tipos de evento próprios são fail-closed a partir de
+  `0.1.2-alpha.1`, então nenhum registro durável do plugin é escrito.
 - **Segredos** — este plugin não lê, registra nem armazena credenciais.
 
 ## Limites de segurança

@@ -6,7 +6,7 @@
  * registered at load time on the root scope with `{ prepend: true }` so it wraps
  * the official `installModelSelection` listener (registered later, during agent
  * setup) and its replacement wins. It always awaits `next()` exactly once and
- * never returns `undefined` 鈥?the inner listener destructures the result without
+ * never returns `undefined`: the inner listener destructures the result without
  * a guard.
  *
  * @module dsh-autotier/routing
@@ -120,6 +120,8 @@ export class AutotierRouter {
   private readonly pendingJudges = new Set<Promise<void>>()
   /** Per-session classifier counters, keyed by session so no agent registry is needed. */
   private readonly counters = new WeakMap<Session, { toolNames: string[]; messageCount: number }>()
+  /** Router-owned lifetime signal: aborts in-flight judge calls on unload. */
+  private readonly lifetime = new AbortController()
   private disposed = false
 
   /**
@@ -137,6 +139,7 @@ export class AutotierRouter {
     this.ctx.on('session/event', (session, event) => this.onSessionEvent(session, event))
     this.ctx.effect(() => () => {
       this.disposed = true
+      this.lifetime.abort()
     })
   }
 
@@ -183,9 +186,13 @@ export class AutotierRouter {
     state.input = input
     state.decision = classifyIntent(input, { rules: this.service.rules(), scenarios: config.intent.scenarios })
     state.verified = false
-    // `reviewOwed` deliberately survives a new input: a cheap attempt that hit a
-    // signal still owes exactly one strong pass, and a turn-ending failure has
-    // no later step in its own turn to spend it on.
+    // `reviewOwedFor` deliberately survives a new input: a cheap attempt that
+    // hit a signal still owes one strong pass for that shape of request, and a
+    // turn-ending failure has no later step in its own turn to spend it on.
+    // The posterior opinion (with its exploration roll) is taken once per user
+    // input; every step of the turn reuses it.
+    const probe = this.service.posteriors().verdict(state.decision.fingerprint)
+    state.probe = probe ?? undefined
     if (this.modeFor(agent) !== 'auto') return
     const rule = evaluateRules(this.service.rules(), input)
     if (shouldPlan(state.decision) && !state.planActive) this.enterPlanMode(agent)
@@ -197,7 +204,10 @@ export class AutotierRouter {
   /** Fire the judge without blocking the emit dispatch. */
   private startJudge(agent: Agent, config: ResolvedConfig, text: string, local: IntentResult): void {
     const state = this.states.for(agent)
-    const signal = new AbortController().signal
+    // Arm the cooldown before the call: a second input arriving while this one
+    // is still in flight must not start a second judge.
+    state.judge.lastCall = Date.now()
+    const signal = this.lifetime.signal
     // The decision object is the generation token: a newer input replaces
     // `state.decision`, and a stale judge answer must not overwrite it.
     const generation = local
@@ -256,10 +266,14 @@ export class AutotierRouter {
    * Offer the proposal to third parties on the `autotier/route` serial event.
    * A listener failure is contained, and a listener that never settles cannot
    * stall the turn: the race resolves with our own decision after the timeout.
+   * The timer is owned by `ctx.effect`, so unloading clears it (no HMR leak).
    */
   private async serialVeto(proposal: RouteProposal): Promise<RouteVeto | void> {
     const deadline = new Promise<undefined>((resolve) => {
-      AbortSignal.timeout(VETO_TIMEOUT_MS).addEventListener('abort', () => { resolve(undefined) }, { once: true })
+      this.ctx.effect(() => {
+        const timer = setTimeout(() => { resolve(undefined) }, VETO_TIMEOUT_MS)
+        return () => { clearTimeout(timer) }
+      })
     })
     const offered = this.ctx.serial('autotier/route', proposal).catch((error: unknown) => {
       this.ctx.logger.warn('dsh-autotier: autotier/route listener failed: %o', error)
@@ -296,9 +310,10 @@ export class AutotierRouter {
     if (state.fallback !== undefined && state.fallback.tier === tier && state.fallback.until > now) {
       const chainEntry = entry.fallback[state.fallback.index]
       if (chainEntry !== undefined) {
-        return entry.followSession
+        const floor = entry.followSession && base?.reasoningEffort !== undefined ? undefined : entry.effort
+        return floor === undefined
           ? { provider: chainEntry.provider, model: chainEntry.model }
-          : { provider: chainEntry.provider, model: chainEntry.model, effort: entry.effort }
+          : { provider: chainEntry.provider, model: chainEntry.model, effort: floor }
       }
     }
     if (tier === 'strong' && state.escalation !== undefined && state.escalation.until > now) {
@@ -375,11 +390,13 @@ export class AutotierRouter {
       state,
       intent,
       rule,
-      posteriors: this.service.posteriors(),
       override: state.override,
       now,
     })
-    if (attemptBandApplies(config, intent) && !state.verified && !escalationActive(state, now)) {
+    // Attempt-first band: only a classifier-driven verdict may be downgraded —
+    // an explicit rule, plan mode, escalation or manual override wins outright.
+    const classifierDriven = decision.source === 'judge' || decision.source === 'default'
+    if (classifierDriven && attemptBandApplies(config, intent) && !state.verified && !escalationActive(state, now)) {
       decision = {
         tier: 'cheap',
         source: 'default',
@@ -387,12 +404,12 @@ export class AutotierRouter {
         confidence: intent.confidence,
       }
     }
-    // Attempt-first review: a cheap-run signal (error, denial, abort) owes one
-    // strong pass for the same input. The flag is consumed here so the review
-    // runs exactly once.
-    if (state.reviewOwed && !state.verified) {
+    // Attempt-first review: a cheap-run signal owes one strong pass for the
+    // SAME SHAPE of request (fingerprint), so an unrelated later task neither
+    // inherits nor spends it.
+    if (state.reviewOwedFor !== undefined && state.reviewOwedFor === intent.fingerprint && !state.verified) {
       state.verified = true
-      state.reviewOwed = false
+      state.reviewOwedFor = undefined
       decision = {
         tier: 'strong',
         source: 'escalation',
@@ -418,7 +435,10 @@ export class AutotierRouter {
     if (state.appliedTier !== tier) {
       const from = state.appliedTier
       state.appliedTier = tier
+      state.appliedSource = source
       this.ctx.emit('autotier/tier-changed', { agent, from, to: tier, source, reason, route })
+    } else {
+      state.appliedSource = source
     }
     this.ctx.logger.debug(
       'dsh-autotier: turn=%d step=%d tier=%s source=%s (%s)',
@@ -433,15 +453,23 @@ export class AutotierRouter {
 
   /** Count failures and escalate on the configured signature recurrence. */
   private onAgentError(agent: Agent, error: unknown): void {
+    const mode = this.modeFor(agent)
+    // Failures in a session that opted out of routing are not ours to count.
+    if (mode === 'off' || mode === 'delegated') return
     const state = this.states.for(agent)
     const config = this.service.config()
     const signature = `${codeOf(error)}|${state.decision?.fingerprint ?? ''}`
     const now = Date.now()
-    // An attempt-first turn that hits a signal owes one strong review.
+    // An attempt-first turn that hits a signal owes one strong review for the
+    // SAME decision (a later input is a different task and must re-earn it).
     if (state.decision !== undefined && attemptBandApplies(config, state.decision) && !state.verified) {
-      state.reviewOwed = true
+      state.reviewOwedFor = state.decision.fingerprint
     }
     const alreadyEscalated = escalationActive(state, now)
+    // Escalation is a cheap-tier remedy: a strong-tier failure is not evidence
+    // that the cheap tier was wrong.
+    const failedTier = state.appliedTier ?? 'cheap'
+    if (failedTier !== 'cheap' && !alreadyEscalated) return
     const escalatedNow = noteFailure(state, signature, config, now)
     if (escalatedNow && !alreadyEscalated) {
       const tier = this.routeFor('strong', config, state.decision, state, now)
@@ -477,6 +505,10 @@ export class AutotierRouter {
     failure: { code?: unknown; status?: unknown },
     next: () => Promise<{ kind: 'retry' } | undefined>,
   ): Promise<{ kind: 'retry' } | undefined> {
+    const mode = this.modeFor(agent)
+    // A session that opted out of routing keeps its own failure handling: the
+    // chain is autotier's, so it must not re-dispatch a route we do not own.
+    if (mode === 'off' || mode === 'delegated') return next()
     const config = this.service.config()
     const verdict = classifyFallback(failure)
     if (verdict === 'ignore' || verdict === 'unknown') return next()

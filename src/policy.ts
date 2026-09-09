@@ -8,7 +8,7 @@
  */
 
 import type { ResolvedConfig } from './config.ts'
-import type { IntentInput, IntentResult, PosteriorTable, RuleHit } from './intent.ts'
+import type { IntentInput, IntentResult, RuleHit } from './intent.ts'
 import { advanceFallback, fallbackActive, type FallbackRecord } from './tiers.ts'
 import type { RouteSource, RoutingMode, TierId } from './types.ts'
 
@@ -20,22 +20,24 @@ export interface RouteState {
   input: IntentInput | undefined
   /** Session-level override set by `/tier`; `undefined` = follow the configuration. */
   override: RoutingMode | undefined
-  /** Identity of the user input the decision belongs to. */
-  decisionKey: string | undefined
   /** The tier actually applied to the last request (hysteresis anchor). */
   appliedTier: TierId | undefined
+  /** The source that produced `appliedTier`; hysteresis only damps classifier-driven changes. */
+  appliedSource: RouteSource | undefined
   /** Plan mode as last observed. */
   planActive: boolean
   /** Failure escalation. */
   escalation: { count: number; signature: string; until: number; rung: number; lastAt: number } | undefined
-  /** Fallback-chain position. */
+  /** Fallback-chain position (scoped to one tier). */
   fallback: FallbackRecord | undefined
   /** Judge resilience. */
   judge: { failures: number; lastCall: number }
   /** Attempt-first band: the strong review has already run for this input. */
   verified: boolean
-  /** Attempt-first band: a cheap-run signal asked for one strong review. */
-  reviewOwed: boolean
+  /** The fingerprint that owes one strong review after a cheap-run signal. */
+  reviewOwedFor: string | undefined
+  /** The posterior exploration roll, taken once per user input. */
+  probe: 'strong' | 'cheap' | undefined
   /** How many calls the guard denied for this agent. */
   denials: number
   /** The last rule the guard fired, for `/tier status`. */
@@ -48,14 +50,15 @@ export function createRouteState(): RouteState {
     decision: undefined,
     input: undefined,
     override: undefined,
-    decisionKey: undefined,
     appliedTier: undefined,
+    appliedSource: undefined,
     planActive: false,
     escalation: undefined,
     fallback: undefined,
     judge: { failures: 0, lastCall: 0 },
     verified: false,
-    reviewOwed: false,
+    reviewOwedFor: undefined,
+    probe: undefined,
     denials: 0,
     lastDenial: '',
   }
@@ -75,7 +78,6 @@ export interface DecideInput {
   readonly state: RouteState
   readonly intent: IntentResult
   readonly rule: RuleHit | null
-  readonly posteriors: PosteriorTable
   /** Session/plugin override; `undefined` means the configured routing mode. */
   readonly override: RoutingMode | undefined
   readonly now: number
@@ -86,10 +88,18 @@ export function escalationActive(state: RouteState, now: number): boolean {
   return state.escalation !== undefined && state.escalation.until > now
 }
 
-/** Apply the double-threshold hysteresis to a classifier-driven change. */
+/**
+ * Apply the double-threshold hysteresis to a classifier-driven change. The
+ * anchor is only honoured when the applied tier itself came from the
+ * classifier: an escalation, plan-mode, rule or manual decision is a deliberate
+ * instruction, so returning from it must not be damped (otherwise a session
+ * that escalated once never returns to the cheap tier).
+ */
 function withHysteresis(state: RouteState, proposed: TierId, confidence: number, config: ResolvedConfig): TierId {
   const applied = state.appliedTier
   if (applied === undefined || applied === proposed) return proposed
+  const anchorSource = state.appliedSource
+  if (anchorSource !== 'judge' && anchorSource !== 'posterior' && anchorSource !== 'default') return proposed
   const { toStrong, toCheap } = config.intent.hysteresis
   if (proposed === 'strong' && confidence < toStrong) return applied
   if (proposed === 'cheap' && confidence >= toCheap) return applied
@@ -108,7 +118,7 @@ function withHysteresis(state: RouteState, proposed: TierId, confidence: number,
  * @returns the decision with its provenance.
  */
 export function decideTier(input: DecideInput): Decision {
-  const { state, config, intent, rule, posteriors, override, now } = input
+  const { state, config, intent, rule, override, now } = input
   if (override === 'strong' || override === 'cheap') {
     return { tier: override, source: 'manual', reason: `/tier ${override}`, confidence: 1 }
   }
@@ -134,7 +144,10 @@ export function decideTier(input: DecideInput): Decision {
   if (rule !== null) {
     return { tier: rule.tier, source: 'rule', reason: `rule ${rule.id}`, confidence: 1 }
   }
-  const posterior = posteriors.verdict(intent.fingerprint)
+  // The posterior opinion (including its exploration roll) is taken once per
+  // user input by the router and stored on the state, so a tool-loop step
+  // cannot re-roll it into a different tier.
+  const posterior = state.probe ?? null
   if (posterior !== null) {
     return {
       tier: posterior,

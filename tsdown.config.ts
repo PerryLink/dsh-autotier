@@ -25,10 +25,8 @@ export default defineConfig({
   // ESM output under a "type": "module" package must land on .js, not .mjs.
   fixedExtension: false,
   deps: {
-    // Only zod may come in from node_modules; every @deepseek-ai/* face stays
-    // external (peers), and node builtins are never bundled.
-    onlyBundle: ['zod'],
-    alwaysBundle: ['zod'],
+    // Every @deepseek-ai/* face stays external (peers) and node builtins are
+    // never bundled; the host half has no runtime dependency of its own.
     neverBundle: [/^node:/, /^@deepseek-ai\//],
   },
 })

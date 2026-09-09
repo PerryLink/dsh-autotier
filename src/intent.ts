@@ -448,22 +448,33 @@ export class PosteriorTable {
   }
 
   /**
-   * The table's opinion about one fingerprint.
+   * The table's opinion about one fingerprint, without the exploration roll.
    * @param key - the fingerprint.
-   * @returns `'strong'` when the cheap win rate is too low, `'cheap'` when it is
-   *   healthy, and `null` when the table abstains (cold start or unknown key).
+   * @returns the base verdict and whether an exploration probe is warranted.
+   */
+  opinion(key: string): { verdict: PosteriorVerdict; explore: boolean } {
+    const entry = this.entries.get(key)
+    if (entry === undefined) return { verdict: null, explore: false }
+    if (entry.cheapN + entry.strongN < this.coldStart) return { verdict: null, explore: false }
+    if (entry.cheapN === 0) return { verdict: entry.strongN > 0 ? 'strong' : null, explore: false }
+    const healthy = wilsonLowerBound(entry.cheapOK, entry.cheapN) > 0.5
+    return healthy ? { verdict: 'cheap', explore: true } : { verdict: 'strong', explore: false }
+  }
+
+  /**
+   * The table's opinion about one fingerprint. The exploration roll is a
+   * decision point, so callers take it once per user input and reuse the
+   * result for every step of that input's turn.
+   * @param key - the fingerprint.
+   * @returns `'strong'`, `'cheap'`, or `null` when the table abstains.
    */
   verdict(key: string): PosteriorVerdict {
-    const entry = this.entries.get(key)
-    if (entry === undefined) return null
-    if (entry.cheapN + entry.strongN < this.coldStart) return null
-    if (entry.cheapN > 0 && this.random() < this.epsilon) {
+    const { verdict, explore } = this.opinion(key)
+    if (verdict === 'cheap' && explore && this.random() < this.epsilon) {
+      this.probe(key)
       return 'strong'
     }
-    const cheapOK = entry.cheapOK
-    const cheapN = entry.cheapN
-    if (cheapN === 0) return entry.strongN > 0 ? 'strong' : null
-    return wilsonLowerBound(cheapOK, cheapN) <= 0.5 ? 'strong' : 'cheap'
+    return verdict
   }
 
   /** Snapshot every key, newest first, for `/tier status` and diagnostics. */

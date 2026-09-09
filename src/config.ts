@@ -199,7 +199,9 @@ function resolveIntent(raw: IntentConfig | undefined): ResolvedConfig['intent'] 
         invalid(`intent.rules[${String(index)}].when.patterns[${String(patternIndex)}]`, 'must be a non-empty regular expression')
       }
       try {
-        new RegExp(pattern)
+        // Compile with the same flags `compileRules` uses, so a pattern the
+        // judge accepts can never throw later inside a settings watcher.
+        new RegExp(pattern, 'u')
       } catch (error) {
         invalid(
           `intent.rules[${String(index)}].when.patterns[${String(patternIndex)}]`,
@@ -260,12 +262,16 @@ function resolveGuard(raw: GuardConfig | undefined): ResolvedConfig['guard'] {
       invalid(`guard.protectedPaths[${String(index)}]`, 'must be a non-empty path or glob')
     }
   }
+  const tiers: ('cheap')[] = guard.tiers === undefined ? ['cheap'] : guard.tiers.map((tier, index) => {
+    if (tier !== 'cheap') invalid(`guard.tiers[${String(index)}]`, 'must be "cheap"')
+    return tier
+  })
+  if (tiers.length === 0) {
+    invalid('guard.tiers', 'must list at least one tier; use guard.enabled=false to disable the guard')
+  }
   return {
     enabled: boolean('guard.enabled', guard.enabled, true),
-    tiers: guard.tiers === undefined ? ['cheap'] : guard.tiers.map((tier, index) => {
-      if (tier !== 'cheap') invalid(`guard.tiers[${String(index)}]`, 'must be "cheap"')
-      return tier
-    }),
+    tiers,
     whitelist,
     protectedPaths,
     interopDefend: member('guard.interopDefend', guard.interopDefend, 'auto', ['auto', 'none'] as const),
@@ -294,6 +300,17 @@ function deepFreeze<T>(value: T): T {
 }
 
 /**
+ * The landing a tier actually resolves to. `followSession` tiers omit their
+ * effort, so two tiers that differ only by a configured-but-ignored effort are
+ * the same landing and must be rejected.
+ */
+function effectiveLanding(tier: ResolvedTierConfig): string {
+  return tier.followSession
+    ? `${tier.provider}/${tier.model}@session`
+    : `${tier.provider}/${tier.model}@${tier.effort}`
+}
+
+/**
  * Resolve raw config to the frozen runtime policy, re-judging every default,
  * bound and cross-field requirement.
  *
@@ -305,8 +322,8 @@ export function resolveConfig(raw: Config | undefined): ResolvedConfig {
   const tiers = raw?.tiers ?? {}
   const strong = resolveTier('strong', tiers.strong, DEFAULT_STRONG)
   const cheap = resolveTier('cheap', tiers.cheap, DEFAULT_CHEAP)
-  const strongTriple = `${strong.provider}/${strong.model}@${strong.effort}`
-  const cheapTriple = `${cheap.provider}/${cheap.model}@${cheap.effort}`
+  const strongTriple = effectiveLanding(strong)
+  const cheapTriple = effectiveLanding(cheap)
   if (strongTriple === cheapTriple) {
     invalid('tiers', `strong and cheap resolve to the same landing (${strongTriple}); tiering would be a no-op`)
   }

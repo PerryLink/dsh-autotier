@@ -70,8 +70,29 @@ describe('resolveConfig', () => {
   })
 
   it('fails loud when strong and cheap land on the same tier', () => {
-    expect(() => resolveConfig({ tiers: { cheap: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high' } } }))
-      .toThrow(/strong and cheap resolve to the same landing/u)
+    expect(() => resolveConfig({
+      tiers: {
+        cheap: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high', followSession: false },
+      },
+    })).toThrow(/strong and cheap resolve to the same landing/u)
+  })
+
+  it('treats a followSession tier as its own landing', () => {
+    // Same provider/model/effort, but `followSession` changes the landing, so
+    // this is not a collision.
+    expect(() => resolveConfig({
+      tiers: {
+        strong: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high', followSession: false },
+        cheap: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high', followSession: true },
+      },
+    })).not.toThrow()
+    // Two followSession tiers on one model are a collision.
+    expect(() => resolveConfig({
+      tiers: {
+        strong: { provider: 'deepseek-official', model: 'deepseek-v4-pro', followSession: true },
+        cheap: { provider: 'deepseek-official', model: 'deepseek-v4-pro', followSession: true },
+      },
+    })).toThrow(/strong and cheap resolve to the same landing/u)
   })
 
   it('allows the same model on both tiers when the effort differs', () => {

@@ -12,7 +12,7 @@ import { Service, type Context } from '@deepseek-ai/cordis'
 import type { SettingsScope } from '@deepseek-ai/dsh-settings'
 import { resolveConfig, type Config, type ResolvedConfig } from './config.ts'
 import { compileRules, PosteriorTable, type CompiledRule } from './intent.ts'
-import type { AutotierStatus, EffortId, RoutingMode, TierRoute } from './types.ts'
+import type { AutotierStatus, EffortId, TierRoute } from './types.ts'
 
 declare module '@deepseek-ai/cordis' {
   interface Context {
@@ -44,7 +44,6 @@ export class AutotierService extends Service {
   private readonly posteriorTable = new PosteriorTable()
   private resolved: ResolvedConfig
   private compiled: CompiledRule[]
-  private override: RoutingMode | undefined
 
   /**
    * Register the service as `ctx.autotier` and start following the settings
@@ -57,7 +56,6 @@ export class AutotierService extends Service {
     this.scope = options.scope
     this.resolved = options.config
     this.compiled = compileRules(options.config.intent.rules)
-    this.override = undefined
     ctx.effect(() => this.scope.watch((next) => {
       // A committed settings write replaces the whole resolved policy. A value
       // the schema accepted but the cross-field judge rejects keeps the last
@@ -81,16 +79,6 @@ export class AutotierService extends Service {
   /** The per-fingerprint win-rate posteriors. */
   posteriors(): PosteriorTable {
     return this.posteriorTable
-  }
-
-  /** Set (or clear) the session-independent routing override. */
-  setOverride(mode: RoutingMode | undefined): void {
-    this.override = mode
-  }
-
-  /** The active override, when one is set. */
-  currentOverride(): RoutingMode | undefined {
-    return this.override
   }
 
   /**
@@ -124,7 +112,7 @@ export class AutotierService extends Service {
   status(): AutotierStatus {
     const config = this.resolved
     return {
-      mode: this.override ?? config.routingMode,
+      mode: config.routingMode,
       tiers: {
         strong: routeOf(config.tiers.strong),
         cheap: routeOf(config.tiers.cheap),
@@ -138,7 +126,6 @@ export class AutotierService extends Service {
         fallbackTtlMs: config.escalation.fallbackTtlMs,
         signature: config.escalation.signature,
       },
-      override: this.override,
     }
   }
 }

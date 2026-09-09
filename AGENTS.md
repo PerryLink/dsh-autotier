@@ -8,9 +8,9 @@ records repo-local decisions.
 
 - `src/index.ts` — function-plugin contract (`name`/`inject`/`Config`/`apply`; NO
   default export). Injects `settings`, `llm`, `tools`, `commands` and `sessions`
-  (plural — the host service is `ctx.sessions`); `agents`, `subagents`,
-  `systemPrompt`, `planMode`, `sessionProjections` and `sandboxPolicy` are read
-  with `ctx.get()` and degrade when absent.
+  (plural — the host service is `ctx.sessions`); `agents`, `planMode`,
+  `sessionProjections` and `sandboxPolicy` are read with `ctx.get()` and degrade
+  when absent.
 - `src/schema.ts` — the Schemastery schema and the raw (partial) config
   interfaces it resolves. Kept free of executable logic so a schema module never
   mixes function values into its declarations (the plugin-doctor K4 rule).
@@ -43,9 +43,10 @@ records repo-local decisions.
 - **Fail loud**: invalid configuration throws at mount or at the settings write,
   never silently disables routing.
 - **Model-visible ⟺ logged**: the only model-visible content is the `/tier`
-  output and the guard's corrective denial; both are reconstructable from the
-  plugin logger and the `autotier/tier-changed` event on harness lines whose
-  session-event vocabulary is fail-closed.
+  output and the guard's corrective denial. No custom session event is appended
+  (that vocabulary is fail-closed on `0.1.2-alpha.1` and later); the trail is the
+  plugin logger plus the live `autotier/tier-changed` bus event, and the sole
+  append is the `plan/mode` fallback when the plan-mode service is absent.
 - **Registration is an effect**: every listener, command, tool, service and
   settings namespace rides the plugin fiber and disappears on dispose.
 
