@@ -5,6 +5,39 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Browser half: a Settings card and a composer tier pill.** The plugin now
+  ships a `tier` Typert Remote service (`tier/status`, `tier/catalog`,
+  `tier/setMode`) behind a hand-written `./typert` host manifest, and a client
+  bundle that registers the composer pill into `conversation.input.left`
+  (id `tier-pill`) and the autotier card into the Plugins settings section
+  (`settings.plugins.tab`, id `autotier`). The pill shows the session's effective
+  mode (`AUTO` / `STRONG` / `CHEAP` / `OFF`) with an escalation badge and cycles
+  the session override on click; the card offers the full
+  `auto | strong | cheap | delegated | off` selector, the read-only tier
+  landings, the live session state, and a model-catalog dropdown fed by the live
+  `ctx.llm` registry. Copy ships in English and Simplified Chinese.
+- `TierStatus` extends the public `AutotierStatus` additively with a `session`
+  view (override, effective mode, applied tier and source, escalation, plan
+  mode, guard denials); the host still serves `ctx.autotier.status()` unchanged.
+- `zod` is now a runtime dependency (the strict wire codecs on both faces) and
+  the client peers (`dsh-api-remotes`, `dsh-client-connection`,
+  `dsh-client-locale`, `dsh-client-ui-conversation`, `dsh-client-ui-settings`,
+  `dsh-client-ui-slots`, `dsh-typert-protocol`) are declared as optional peers.
+
+### Notes
+
+- The session override stays runtime-only: `auto` clears it, and a plugin reload
+  restores the `cordis.yml` routing mode. Nothing is persisted.
+- `pnpm run verify:artifacts` now asserts the two new shipped faces
+  (`lib/typert.host.js` with its manifest shape, `lib/client.js` with its
+  ModuleLoader handshake and external platform modules).
+- The five-language READMEs are not updated in this change; the client copy is
+  English + Simplified Chinese only.
+
 ## [0.1.1] - 2026-09-09
 
 ### Added

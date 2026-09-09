@@ -21,9 +21,28 @@ records repo-local decisions.
 - `src/service.ts` — `ctx.autotier` (`status()` and the live settings scope).
 - `src/types.ts` — shared vocabulary (tier ids, effort ids, routing modes,
   scenarios, route/status shapes).
+- `src/wire.ts` — the `tier` Remote wire vocabulary: `TierStatus` (the public
+  `AutotierStatus` plus an additive `session` view), `TierCatalog`, their zod v4
+  codecs, and the three invocation descriptors shared verbatim by the host
+  manifest and the client contribution.
+- `src/typert.host.ts` — the hand-written host Typert manifest exported as
+  `./typert`; the harness's typert-loader registers the `tier` invocations from
+  it when the plugin mounts.
+- `src/tier-remote.ts` — `TierRemoteService` (`TypertRemoteService`, namespace
+  `tier`): `status(agentId?)` / `catalog()` / `setMode(mode, agentId?)`. The
+  override it writes is the same per-agent `RouteState.override` the router and
+  `/tier` read; `agents` is read optionally through the injected resolver.
+- `src/client/` — browser half: `$mount`s the Remote contribution, registers the
+  composer pill into `conversation.input.left` (id `tier-pill`) and the Settings
+  card into `settings.plugins.tab` (id `autotier`), with a pure presenter
+  (`present.ts`), inline scoped stylesheet (`styles.ts`), and en/zh dictionaries
+  (`locales.ts`). The slot registry is read through a local structural
+  `SlotsFace` (its owning package differs across host lines).
 - `tests/` — vitest over the REAL published `0.1.2-rc.1` host packages
   (`Context`, `SessionStore`, `SystemPrompt`, `ToolRuntime`, `CommandRuntime`,
-  in-memory `SettingsProvider`) plus one real Loader composition.
+  in-memory `SettingsProvider`) plus one real Loader composition. The browser
+  half is covered through its pure units (wire codecs, presenter, dictionaries)
+  and the `tier` service through a real mount with a scripted `agents` face.
 
 ## Hard rules applied here
 
@@ -63,8 +82,12 @@ table.
 `typescript` + `tsdown` are regular `dependencies` (the git channel's `prepare`
 builds with production dependencies alone). `scripts/prepare.mjs` wipes `lib/`,
 emits tsc declarations into `lib/types`, then runs tsdown (tsdown `clean` stays
-OFF so the declarations survive). `pnpm-workspace.yaml` declares
-`allowBuilds: { esbuild: true }`.
+OFF so the declarations survive). Two build faces: the node half
+(`lib/index.js` + `lib/typert.host.js`) and the browser half (`lib/client.js`),
+whose CJS factory is wrapped in `window.__ModuleLoader__.load({ id, factory })`
+with the shell's platform modules (`react`, `react/jsx-runtime`, the
+`@deepseek-ai/dsh-client-*` singletons) left external and zod inlined.
+`pnpm-workspace.yaml` declares `allowBuilds: { esbuild: true }`.
 
 ## Checks
 

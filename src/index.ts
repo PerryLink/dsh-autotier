@@ -16,12 +16,14 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
+import type { SessionId } from '@deepseek-ai/dsh-session'
 import { registerTierCommand } from './command.ts'
 import { Config, resolveConfig, validateConfig, type Config as AutotierConfig } from './config.ts'
 import { registerGuardHook } from './guard.ts'
 import { AutotierRouter } from './routing.ts'
 import { AutotierService } from './service.ts'
 import { AgentStateStore, registerTierProjection } from './state.ts'
+import { TierRemoteService } from './tier-remote.ts'
 import { registerTierTools } from './tools.ts'
 
 export { Config, resolveConfig, validateConfig } from './config.ts'
@@ -42,6 +44,29 @@ export { AutotierService } from './service.ts'
 export { AutotierRouter } from './routing.ts'
 export type { RouteProposal, RouteVeto, TierChange } from './routing.ts'
 export { AgentStateStore, registerTierProjection, TIER_PROJECTION_KEY } from './state.ts'
+export { TierRemoteService } from './tier-remote.ts'
+export type { TierRemoteBindings } from './tier-remote.ts'
+export {
+  ROUTE_SOURCES,
+  TIER_AGENT_ID_SCHEMA,
+  TIER_CATALOG_DESCRIPTOR,
+  TIER_CATALOG_SCHEMA,
+  TIER_INVOCATIONS,
+  TIER_MODE_SCHEMA,
+  TIER_NAMESPACE,
+  TIER_SESSION_VIEW_SCHEMA,
+  TIER_SET_MODE_DESCRIPTOR,
+  TIER_STATUS_DESCRIPTOR,
+  TIER_STATUS_SCHEMA,
+} from './wire.ts'
+export type {
+  TierAgentId,
+  TierCatalog,
+  TierCatalogProvider,
+  TierModelInfo,
+  TierSessionView,
+  TierStatus,
+} from './wire.ts'
 export {
   classifyIntent,
   compileRules,
@@ -128,6 +153,24 @@ export function apply(ctx: Context, config: AutotierConfig = {}): void {
   registerGuardHook({ ctx, service, states })
   registerTierCommand(ctx, service, states)
   registerTierTools(ctx, { service, states })
+  // Browser face: the `tier` Typert Remote service the Settings card and the
+  // composer pill call. It writes the same `RouteState.override` the router and
+  // `/tier` read, so the three surfaces can never disagree; `agents` is read
+  // optionally (the plugin must not hard-depend on the agent registry), and an
+  // unresolvable session id degrades the read and refuses the write.
+  new TierRemoteService(ctx, {
+    service,
+    states,
+    resolveAgent: (agentId) => {
+      const agents = ctx.get('agents')
+      if (agents === undefined) return undefined
+      try {
+        return agents.get(agentId as SessionId)
+      } catch {
+        return undefined
+      }
+    },
+  })
   if (resolved.guard.interopDefend === 'auto') {
     // Coexistence is deliberate: dsh-defend owns content scanning (injection,
     // jailbreak, secrets) and its own recursive-delete gate; autotier adds
