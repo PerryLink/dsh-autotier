@@ -43,8 +43,8 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
   TTL के लिए स्तर बढ़ाती है; मॉडल/मार्ग विफलता पर कॉन्फ़िगर की गई fallback
   श्रृंखला चली जाती है।
 - **मैनुअल एस्केप हैच** — `/tier auto|strong|cheap|off` और `tier_status` /
-  `tier_route` टूल। सत्र में स्पष्ट रूप से चुना गया मॉडल हमेशा जीतता है
-  (`delegated` मोड)।
+  `tier_route` टूल। जिस सत्र को अपना मॉडल रखना है, उसके लिए
+  `routingMode: delegated` (या `/tier off`) रूटिंग बंद कर देता है।
 - **`ctx.autotier` सेवा** — एक छोटा पठन-तल (`status`) तथा `autotier/route`
   वीटो waterfall और `autotier/tier-changed` इवेंट, जिससे अन्य प्लगइन निर्णय
   देख या रद्द कर सकें।
@@ -197,6 +197,14 @@ dsh plugin --profile web remove dsh-autotier
   संरेखित करें (`docs/supporting-lanes.md`)।
 - cheap स्तर पर `followSession: true` का अर्थ है कि सत्र का स्पष्ट मॉडल चयन
   जीतता है; उस स्थिति में cheap स्तर अपना मॉडल नहीं थोप सकता।
+- **अभी Settings कार्ड या composer पिल नहीं है।** रूटिंग पूरी तरह स्वचालित है और
+  host सतह (`ctx.autotier.status()` / `catalog()`, `/tier`, `tier_status`,
+  `tier_route`) पूरी है; ब्राउज़र आधा v0.2 में नियोजित है।
+- **GUI में चुना गया मॉडल स्वचालित रूप से नहीं पहचाना जाता।** रूटिंग रोकने के लिए
+  `routingMode: delegated` या `/tier off` इस्तेमाल करें।
+- **फिंगरप्रिंट posteriors केवल स्मृति में रहते हैं** और पुनः आरंभ पर रीसेट होते हैं।
+- **attempt-first मध्य पट्टी डिफ़ॉल्ट रूप से बंद है**, कैलिब्रेशन कॉर्पस (v0.2) के
+  बाद सक्रिय होगी।
 
 ## विकास
 

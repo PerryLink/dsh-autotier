@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Decision-state-machine suite: precedence between overrides, escalation, plan
  * mode, rules, posteriors and the classifier; the double-threshold hysteresis;
  * the judge's cooldown/abstain logic; and the same-signature escalation counter.

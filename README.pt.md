@@ -46,8 +46,8 @@ apenas torna as decisões visíveis ao modelo (veja [Instalação e desinstalaç
   assinatura) elevam o nível por um TTL; uma falha de modelo/rota percorre a
   cadeia de fallback configurada.
 - **Válvulas manuais** — `/tier auto|strong|cheap|off` e as ferramentas
-  `tier_status` / `tier_route`. Uma seleção explícita de modelo na sessão sempre
-  vence (modo `delegated`).
+  `tier_status` / `tier_route`. Definir `routingMode: delegated` (ou `/tier off`)
+  interrompe o roteamento para uma sessão que precisa manter o próprio modelo.
 - **Serviço `ctx.autotier`** — uma superfície de leitura (`status`) mais a
   waterfall de veto `autotier/route` e o evento `autotier/tier-changed`, para que
   outros plugins observem ou anulem uma decisão.
@@ -200,6 +200,16 @@ cruzado é recusada ao salvar e a última política válida continua em vigor.
   cheap para o mesmo perfil de custo (`docs/supporting-lanes.md`).
 - `followSession: true` no nível cheap significa que uma escolha explícita de
   modelo na sessão vence; nesse caso o nível cheap não pode impor o seu.
+- **Ainda não há cartão de Settings nem pílula do compositor.** O roteamento é
+  totalmente automático e a superfície host (`ctx.autotier.status()` /
+  `catalog()`, `/tier`, `tier_status`, `tier_route`) está completa; a metade do
+  navegador está planejada para v0.2.
+- **Um modelo escolhido na GUI não é detectado automaticamente.** Use
+  `routingMode: delegated` ou `/tier off` para interromper o roteamento.
+- **As posteriores por impressão digital ficam em memória** e reiniciam a cada
+  reinício.
+- **A faixa intermediária attempt-first vem desativada** até o corpus de
+  calibração existir (v0.2).
 
 ## Desenvolvimento
 

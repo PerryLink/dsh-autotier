@@ -93,6 +93,33 @@ export class AutotierService extends Service {
     return this.override
   }
 
+  /**
+   * The registered provider/model catalog, as the minimal serializable subset a
+   * configuration UI needs. Never hardcoded: it reads the live `ctx.llm`
+   * registry, so a model the adapter does not advertise cannot be selected.
+   * @returns one entry per registered provider with its models.
+   */
+  async catalog(): Promise<{ provider: string; models: { id: string; name: string; inputModalities: readonly string[] }[] }[]> {
+    const entries: { provider: string; models: { id: string; name: string; inputModalities: readonly string[] }[] }[] = []
+    for (const provider of this.ctx.llm.listProviders()) {
+      let models: readonly { id: string; name: string; inputModalities?: readonly string[] }[] = []
+      try {
+        models = await this.ctx.llm.listModels(provider.id)
+      } catch {
+        models = []
+      }
+      entries.push({
+        provider: provider.id,
+        models: models.map(model => ({
+          id: model.id,
+          name: model.name,
+          inputModalities: model.inputModalities ?? ['text'],
+        })),
+      })
+    }
+    return entries
+  }
+
   /** Read-only status snapshot. */
   status(): AutotierStatus {
     const config = this.resolved

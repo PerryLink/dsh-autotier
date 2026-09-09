@@ -44,8 +44,8 @@ optional and only makes the router's decisions visible to the model (see
 - **Failure escalation** — repeated failures (optionally same-signature) raise
   the tier for a TTL; a model/route failure walks the configured fallback chain.
 - **Manual escape hatches** — `/tier auto|strong|cheap|off` and the
-  `tier_status` / `tier_route` tools. An explicit model selection in the session
-  always wins (`delegated` mode).
+  `tier_status` / `tier_route` tools. Setting `routingMode: delegated` (or
+  `/tier off`) stops routing for a session that must keep its own model.
 - **`ctx.autotier` service** — a small read surface (`status`) plus the
   `autotier/route` veto waterfall and `autotier/tier-changed` event, so other
   plugins can observe or override a decision.
@@ -197,6 +197,18 @@ refused at save time and the last good policy stays in effect.
   want the same cost profile (`docs/supporting-lanes.md`).
 - `followSession: true` on the cheap tier means an explicit session model choice
   wins; in that case the cheap tier cannot force its own model.
+- **No Settings card or composer pill yet.** Routing is fully automatic and the
+  host surface (`ctx.autotier.status()` / `catalog()`, `/tier`, `tier_status`,
+  `tier_route`) is complete; the browser half that renders a Settings tab and a
+  composer tier pill is planned for v0.2.
+- **A model picked in the GUI is not detected automatically.** The router does
+  not watch the `agent-default-model` document, so switching models there does
+  not by itself stop routing — use `routingMode: delegated` or `/tier off`.
+- **Fingerprint posteriors are in-memory.** They reset on restart and re-learn
+  from the judge's cold-start fallback; persisting them through the settings
+  document is planned for v0.2.
+- **The attempt-first middle band ships disabled.** `intent.attemptBand.enabled`
+  stays `false` until the calibration corpus and its metric gate land (v0.2).
 
 ## Development
 
