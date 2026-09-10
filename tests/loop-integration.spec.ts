@@ -21,7 +21,7 @@ import {
   type StreamChunk,
 } from '@deepseek-ai/dsh-llm'
 import { SessionId } from '@deepseek-ai/dsh-session'
-import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
+import type {} from '@deepseek-ai/dsh-session-projection'
 import { describe, expect, it } from 'vitest'
 import * as autotier from '../src/index.ts'
 import { MemorySettings } from './harness.ts'
@@ -88,7 +88,6 @@ interface LoopHarness {
 async function createLoopHarness(config: Parameters<typeof autotier.apply>[1] = {}): Promise<LoopHarness> {
   const ctx = new Context()
   await mountAgentLoopTestDependencies(ctx)
-  await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(MemorySettings)
   await ctx.plugin(AgentLoop, { agents: [] })
