@@ -108,8 +108,8 @@ and creates the GitHub Release from the CHANGELOG section.
 
 ## Docs
 
-- Five-language READMEs (`README.md`, `README.zh.md`, `README.es.md`,
-  `README.pt.md`, `README.hi.md`) — keep all five in sync; the English file is
+- Five-language READMEs (`README.md`, `README-zh.md`, `README-es.md`,
+  `README-pt.md`, `README-hi.md`) — keep all five in sync; the English file is
   the source of truth.
 - GitHub topics mirror `package.json` keywords.
 - `THIRD_PARTY_NOTICES.md` records the MIT-licensed guard-rule port from

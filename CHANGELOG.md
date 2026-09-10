@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Rename the four translated READMEs to `README-<lang>.md`. npm selects the package-page readme as the first markdown file matching its `{README,README.*}` glob (`@npmcli/package-json`, publish path), and that glob order puts `README.<lang>.md` ahead of `README.md` — so npm was serving the Simplified-Chinese file for every package of this family (measured on 15/15 sampled packages). The new names sit outside the glob, so the English source is served again. No content changed: the four renames are byte-identical (verified by content hash) and `check:readmes` still passes. Takes effect from the next release; an already-published version cannot gain a corrected readme retroactively.
+- `scripts/check-readme-sync.mjs` now fails when the package root holds more than one npm-visible `README*.md` (it mirrors npm's `{README,README.*}` glob plus the markdown test), so the regression cannot return silently.
+
 ## [0.2.2] - 2026-09-10
 
 ### Changed
