@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Align the `plugin-doctor` CI gate with the family standard: the job now pins `@perrylink/dsh-plugin-doctor@0.1.6` and passes `--only "R,K"` directly, retiring the `0.1.4` pin and the `DOCTOR_ONLY` variable that carried the two group names as YAML `\u` escapes. The gate is now identical to the other 36 repositories and keeps its `R0` guard, which fails loudly when the doctor runs no checks. No runtime change.
+
+### Docs
+
+- Add the ecosystem-standard badge block (Gitee mirror, License, DSH plugin, dsh-doctor, Node, CI, Version) under the H1 of all five READMEs; the rest of each file is unchanged. The `dsh-doctor` badge target and the Gitee mirror were verified to exist before being referenced. This release is what puts the badges on the npm page: npm renders the README from the published tarball, so the GitHub-only commit was not visible there.
+
 ## [0.2.1] - 2026-09-10
 
 ### Changed
