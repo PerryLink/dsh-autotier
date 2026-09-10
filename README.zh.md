@@ -15,7 +15,7 @@ DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个
 | Harness | 状态 |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | 兼容；compat 工作流对该线做端到端安装验证 |
-| `@deepseek-ai/dsh` `0.1.5-alpha.1` | 兼容；已端到端实测（真实 profile 安装、`--dump-config` 行、keyless headless 冒烟）并纳入 compat 矩阵 |
+| `@deepseek-ai/dsh` `0.1.5-rc.1` | 兼容；已端到端实测（真实 profile 安装、`--dump-config` 行、keyless headless 冒烟）并纳入 compat 矩阵 |
 | `@deepseek-ai/cordis` `^4.0.2`、`@deepseek-ai/schemastery` `^3.18.2` | peer 基线 |
 
 peer 范围显式列出两条已发布线（`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1
@@ -196,7 +196,7 @@ dsh plugin --profile web remove dsh-autotier
 ```bash
 pnpm install
 pnpm run typecheck      # 对照本地 harness checkout 的类型面
-pnpm run typecheck:ci   # 对照已发布的 0.1.2-rc.1 类型面（CI 实际执行）
+pnpm run typecheck:ci   # 对照已发布的 0.1.5-rc.1 类型面（CI 实际执行）
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

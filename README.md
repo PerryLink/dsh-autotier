@@ -18,7 +18,7 @@ escalate to the strong tier with a TTL fallback.
 | Harness | Status |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible; the compat workflow installs this line end-to-end |
-| `@deepseek-ai/dsh` `0.1.5-alpha.1` | compatible; verified end-to-end (real profile install, `--dump-config` row, keyless headless smoke) and in the compat matrix |
+| `@deepseek-ai/dsh` `0.1.5-rc.1` | compatible; verified end-to-end (real profile install, `--dump-config` row, keyless headless smoke) and in the compat matrix |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer baseline |
 
 Peer ranges name both published lines explicitly (`>=0.1.2-rc.1 <0.2.0 ||
@@ -220,7 +220,7 @@ refused at save time and the last good policy stays in effect.
 ```bash
 pnpm install
 pnpm run typecheck      # against the local harness checkout type faces
-pnpm run typecheck:ci   # against the published 0.1.2-rc.1 faces (what CI runs)
+pnpm run typecheck:ci   # against the published 0.1.5-rc.1 faces (what CI runs)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

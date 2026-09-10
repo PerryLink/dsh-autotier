@@ -20,7 +20,7 @@ strong con un TTL de retorno.
 | Harness | Estado |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible; el flujo compat instala esta línea de extremo a extremo |
-| `@deepseek-ai/dsh` `0.1.5-alpha.1` | compatible; verificada de extremo a extremo (perfil real, fila en `--dump-config`, smoke keyless) y en la matriz compat |
+| `@deepseek-ai/dsh` `0.1.5-rc.1` | compatible; verificada de extremo a extremo (perfil real, fila en `--dump-config`, smoke keyless) y en la matriz compat |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
 
 Los rangos de peers nombran ambas líneas publicadas (`>=0.1.2-rc.1 <0.2.0 ||
@@ -221,7 +221,7 @@ cruzado se rechaza al guardar y la última política válida sigue vigente.
 ```bash
 pnpm install
 pnpm run typecheck      # contra las caras de tipo del checkout local del harness
-pnpm run typecheck:ci   # contra las caras publicadas 0.1.2-rc.1 (lo que ejecuta CI)
+pnpm run typecheck:ci   # contra las caras publicadas 0.1.5-rc.1 (lo que ejecuta CI)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

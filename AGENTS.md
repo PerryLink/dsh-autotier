@@ -38,7 +38,7 @@ records repo-local decisions.
   (`present.ts`), inline scoped stylesheet (`styles.ts`), and en/zh dictionaries
   (`locales.ts`). The slot registry is read through a local structural
   `SlotsFace` (its owning package differs across host lines).
-- `tests/` — vitest over the REAL published `0.1.2-rc.1` host packages
+- `tests/` — vitest over the REAL published `0.1.5-rc.1` host packages
   (`Context`, `SessionStore`, `SystemPrompt`, `ToolRuntime`, `CommandRuntime`,
   in-memory `SettingsProvider`) plus one real Loader composition. The browser
   half is covered through its pure units (wire codecs, presenter, dictionaries)
@@ -95,7 +95,7 @@ with the shell's platform modules (`react`, `react/jsx-runtime`, the
 pnpm run verify:self-contained && pnpm run verify:artifacts && pnpm pack`. The
 plain `typecheck` resolves the local harness checkout's type faces through
 tsconfig `paths` (four levels up to `D:\deepseek-harness`); `typecheck:ci`
-resolves the npm-published `0.1.2-rc.1` faces (no paths) and is what CI runs —
+resolves the npm-published `0.1.5-rc.1` faces (no paths) and is what CI runs —
 keep both green.
 
 ## Release

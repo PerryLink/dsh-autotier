@@ -19,7 +19,7 @@ retorno.
 | Harness | Estado |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatível; o fluxo compat instala esta linha ponta a ponta |
-| `@deepseek-ai/dsh` `0.1.5-alpha.1` | compatível; verificada ponta a ponta (perfil real, linha no `--dump-config`, smoke keyless) e na matriz compat |
+| `@deepseek-ai/dsh` `0.1.5-rc.1` | compatível; verificada ponta a ponta (perfil real, linha no `--dump-config`, smoke keyless) e na matriz compat |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
 
 Os ranges de peers nomeiam as duas linhas publicadas (`>=0.1.2-rc.1 <0.2.0 ||
@@ -220,7 +220,7 @@ cruzado é recusada ao salvar e a última política válida continua em vigor.
 ```bash
 pnpm install
 pnpm run typecheck      # contra as faces de tipo do checkout local do harness
-pnpm run typecheck:ci   # contra as faces publicadas 0.1.2-rc.1 (o que a CI executa)
+pnpm run typecheck:ci   # contra as faces publicadas 0.1.5-rc.1 (o que a CI executa)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained
