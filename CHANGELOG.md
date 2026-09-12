@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Rename the four translated READMEs to `README-<lang>.md`. npm selects the package-page readme as the first markdown file matching its `{README,README.*}` glob (`@npmcli/package-json`, publish path), and that glob order puts `README.<lang>.md` ahead of `README.md` — so npm was serving the Simplified-Chinese file for every package of this family (measured on 15/15 sampled packages). The new names sit outside the glob, so the English source is served again. No content changed: the four renames are byte-identical (verified by content hash) and `check:readmes` still passes. Takes effect from the next release; an already-published version cannot gain a corrected readme retroactively.
 - `scripts/check-readme-sync.mjs` now fails when the package root holds more than one npm-visible `README*.md` (it mirrors npm's `{README,README.*}` glob plus the markdown test), so the regression cannot return silently.
+- Pin the `@deepseek-ai/dsh-*` dev/test dependencies to the published `0.1.5-rc.2` line and record `0.1.5-rc.2` in `dshWorkshop.compatibility.dshVersions`; the monthly Compat workflow now runs against `0.1.5-rc.2`. The peer range `>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0` is unchanged, so no supported host line is dropped.
 
 ## [0.2.2] - 2026-09-10
 

@@ -26,7 +26,7 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 | Harness | स्थिति |
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | संगत; compat वर्कफ़्लो इस लाइन को end-to-end इंस्टॉल करता है |
-| `@deepseek-ai/dsh` `0.1.5-rc.1` | संगत; end-to-end सत्यापित (वास्तविक profile, `--dump-config` पंक्ति, keyless smoke) और compat मैट्रिक्स में |
+| `@deepseek-ai/dsh` `0.1.5-rc.2` | संगत; end-to-end सत्यापित (वास्तविक profile, `--dump-config` पंक्ति, keyless smoke) और compat मैट्रिक्स में |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer आधार |
 
 peer ranges दोनों प्रकाशित लाइनें स्पष्ट रूप से लिखती हैं (`>=0.1.2-rc.1 <0.2.0
@@ -225,7 +225,7 @@ dsh plugin --profile web remove dsh-autotier
 ```bash
 pnpm install
 pnpm run typecheck      # स्थानीय harness checkout के type faces के विरुद्ध
-pnpm run typecheck:ci   # प्रकाशित 0.1.5-rc.1 faces के विरुद्ध (CI यही चलाता है)
+pnpm run typecheck:ci   # प्रकाशित 0.1.5-rc.2 faces के विरुद्ध (CI यही चलाता है)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained
