@@ -68,6 +68,7 @@ optional and only makes the router's decisions visible to the model (see
 ## Quick start
 
 ```bash
+dsh plugin --profile web add dsh-autotier
 npm i -g dsh1024
 dsh1024 plugin --profile web add dsh-autotier
 ```
@@ -80,6 +81,7 @@ Then start (or restart) the harness. The row is appended to your profile's
 **npm channel**
 
 ```bash
+dsh plugin --profile web add dsh-autotier
 npm i -g dsh1024
 dsh1024 plugin --profile web add dsh-autotier
 ```
@@ -87,6 +89,7 @@ dsh1024 plugin --profile web add dsh-autotier
 **git channel**
 
 ```bash
+dsh plugin --profile web add "github:PerryLink/dsh-autotier#main"
 git clone https://github.com/PerryLink/dsh-autotier.git
 cd dsh-autotier && pnpm install && pnpm run build
 dsh plugin --profile web add .
