@@ -149,25 +149,28 @@ export const TIER_AGENT_ID_SCHEMA = z.string().optional()
 /** Strict wire schema for the routing mode parameter. */
 export const TIER_MODE_SCHEMA = z.enum(ROUTING_MODES)
 
+/**
+ * Dual-face strict codec. The rc.2 line consumes `schema`; the alpha.2 line
+ * requires `create()` and materializes the schema per boundary use
+ * (`codec.create().parse(value)`). Carrying both fields keeps both published
+ * lines bootable — each face ignores the field it does not read, and the zod
+ * instances carry `.parse` natively.
+ */
+function strictCodec<S extends { parse(value: unknown): unknown }>(typeSymbol: string, schema: S) {
+  return Object.freeze({ mode: 'strict' as const, typeSymbol, schema, create: (): S => schema })
+}
+
 /** The optional trailing agent-id parameter both agent-addressed methods share. */
 const AGENT_ID_PARAMETER = Object.freeze({
   name: 'agentId',
   wire: 'agentId',
   source: 'json',
-  codec: Object.freeze({
-    mode: 'strict',
-    typeSymbol: 'dsh-autotier/wire#TierAgentId',
-    schema: TIER_AGENT_ID_SCHEMA,
-  }),
+  codec: strictCodec('dsh-autotier/wire#TierAgentId', TIER_AGENT_ID_SCHEMA),
   acceptsUndefined: true,
 } satisfies InvocationDescriptor['parameters'][number])
 
 /** The strict result codec every `tier` method returns. */
-const TIER_STATUS_RESULT = Object.freeze({
-  mode: 'strict',
-  typeSymbol: 'dsh-autotier/wire#TierStatus',
-  schema: TIER_STATUS_SCHEMA,
-} satisfies InvocationDescriptor['result'])
+const TIER_STATUS_RESULT = strictCodec('dsh-autotier/wire#TierStatus', TIER_STATUS_SCHEMA)
 
 /** Diagnostics location shared by the hand-written descriptors below. */
 const WIRE_LOCATION = Object.freeze({ file: 'src/wire.ts', line: 1, column: 1 })
@@ -200,11 +203,7 @@ export const TIER_CATALOG_DESCRIPTOR = Object.freeze({
   method: 'catalog',
   invocation: Object.freeze({ kind: 'direct' }),
   parameters: Object.freeze([]),
-  result: Object.freeze({
-    mode: 'strict',
-    typeSymbol: 'dsh-autotier/wire#TierCatalog',
-    schema: TIER_CATALOG_SCHEMA,
-  }),
+  result: Object.freeze(strictCodec('dsh-autotier/wire#TierCatalog', TIER_CATALOG_SCHEMA)),
   sourceLocation: WIRE_LOCATION,
 } as const) satisfies InvocationDescriptor
 
@@ -224,11 +223,7 @@ export const TIER_SET_MODE_DESCRIPTOR = Object.freeze({
       name: 'mode',
       wire: 'mode',
       source: 'json',
-      codec: Object.freeze({
-        mode: 'strict',
-        typeSymbol: 'dsh-autotier/types#RoutingMode',
-        schema: TIER_MODE_SCHEMA,
-      }),
+      codec: strictCodec('dsh-autotier/types#RoutingMode', TIER_MODE_SCHEMA),
     } satisfies InvocationDescriptor['parameters'][number]),
     AGENT_ID_PARAMETER,
   ]),
