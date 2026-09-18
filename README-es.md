@@ -129,12 +129,12 @@ repositorio documenta las mismas claves en línea.
 | `tiers.strong.followSession` | `false` | `false` = el effort de este nivel anula el de la sesión. |
 | `tiers.strong.fallback` | `[]` | Aterrizajes provider/model ordenados si el nivel no está disponible. |
 | `tiers.cheap.provider` | `deepseek-official` | Provider del nivel de implementación. |
-| `tiers.cheap.model` | `deepseek-v4-flash` | Id de catálogo del modelo cheap. |
+| `tiers.cheap.model` | `deepseek-flash` | Id de catálogo del modelo cheap. |
 | `tiers.cheap.effort` | `low` | Vocabulario del adaptador `off` \| `low` \| `high` \| `max`. |
 | `tiers.cheap.followSession` | `true` | `true` = hereda el effort de la sesión y gana la elección explícita. |
 | `tiers.cheap.fallback` | `[]` | Aterrizajes provider/model ordenados si el nivel no está disponible. |
 | `tiers.vision.provider` | `deepseek-official` | Provider para turnos con imágenes. |
-| `tiers.vision.model` | `deepseek-v4-flash-vision-exp` | El único modelo del catálogo con modalidad de imagen. |
+| `tiers.vision.model` | `deepseek-flash` | El único modelo del catálogo con modalidad de imagen. |
 | `intent.ruleThreshold` | `0.7` | Confianza a partir de la cual la capa de reglas decide sola. |
 | `intent.attemptBand.enabled` | `false` | Empezar la banda media en cheap y escalar ante una señal. |
 | `intent.attemptBand.tauLow` | `0.45` | Límite inferior de la banda attempt-first. |

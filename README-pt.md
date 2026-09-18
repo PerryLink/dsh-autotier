@@ -128,12 +128,12 @@ documenta as mesmas chaves em linha.
 | `tiers.strong.followSession` | `false` | `false` = o effort deste nível substitui o da sessão. |
 | `tiers.strong.fallback` | `[]` | Aterrissagens provider/model ordenadas se o nível estiver indisponível. |
 | `tiers.cheap.provider` | `deepseek-official` | Provider do nível de implementação. |
-| `tiers.cheap.model` | `deepseek-v4-flash` | Id de catálogo do modelo cheap. |
+| `tiers.cheap.model` | `deepseek-flash` | Id de catálogo do modelo cheap. |
 | `tiers.cheap.effort` | `low` | Vocabulário do adaptador `off` \| `low` \| `high` \| `max`. |
 | `tiers.cheap.followSession` | `true` | `true` = herda o effort da sessão e a escolha explícita vence. |
 | `tiers.cheap.fallback` | `[]` | Aterrissagens provider/model ordenadas se o nível estiver indisponível. |
 | `tiers.vision.provider` | `deepseek-official` | Provider para turnos com imagens. |
-| `tiers.vision.model` | `deepseek-v4-flash-vision-exp` | O único modelo do catálogo com modalidade de imagem. |
+| `tiers.vision.model` | `deepseek-flash` | O único modelo do catálogo com modalidade de imagem. |
 | `intent.ruleThreshold` | `0.7` | Confiança a partir da qual a camada de regras decide sozinha. |
 | `intent.attemptBand.enabled` | `false` | Começar a faixa média no cheap e escalar ao primeiro sinal. |
 | `intent.attemptBand.tauLow` | `0.45` | Limite inferior da faixa attempt-first. |

@@ -31,8 +31,8 @@ function status(over: Partial<TierStatus['session']> = {}, mode: TierStatus['mod
     mode,
     tiers: {
       strong: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high' },
-      cheap: { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
-      vision: { provider: 'deepseek-official', model: 'deepseek-v4-flash-vision-exp' },
+      cheap: { provider: 'deepseek-official', model: 'deepseek-flash' },
+      vision: { provider: 'deepseek-official', model: 'deepseek-flash' },
     },
     guard: { enabled: true, tiers: ['cheap'] },
     escalation: { threshold: 2, windowMs: 60_000, ttlMs: 180_000, fallbackTtlMs: 300_000, signature: true },

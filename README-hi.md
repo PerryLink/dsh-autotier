@@ -125,12 +125,12 @@ dsh plugin --profile web remove dsh-autotier
 | `tiers.strong.followSession` | `false` | `false` = इस स्तर का effort सत्र के effort को ओवरराइड करता है। |
 | `tiers.strong.fallback` | `[]` | स्तर अनुपलब्ध होने पर क्रमबद्ध provider/model लैंडिंग। |
 | `tiers.cheap.provider` | `deepseek-official` | कार्यान्वयन स्तर का provider। |
-| `tiers.cheap.model` | `deepseek-v4-flash` | cheap मॉडल की कैटलॉग id। |
+| `tiers.cheap.model` | `deepseek-flash` | cheap मॉडल की कैटलॉग id। |
 | `tiers.cheap.effort` | `low` | एडाप्टर शब्दावली `off` \| `low` \| `high` \| `max`। |
 | `tiers.cheap.followSession` | `true` | `true` = सत्र का effort विरासत में लें, जिससे स्पष्ट चयन जीते। |
 | `tiers.cheap.fallback` | `[]` | स्तर अनुपलब्ध होने पर क्रमबद्ध provider/model लैंडिंग। |
 | `tiers.vision.provider` | `deepseek-official` | चित्र वाले turn का provider। |
-| `tiers.vision.model` | `deepseek-v4-flash-vision-exp` | कैटलॉग का एकमात्र image-सक्षम मॉडल। |
+| `tiers.vision.model` | `deepseek-flash` | कैटलॉग का एकमात्र image-सक्षम मॉडल। |
 | `intent.ruleThreshold` | `0.7` | जिस आत्मविश्वास से नियम-परत अकेले निर्णय लेती है। |
 | `intent.attemptBand.enabled` | `false` | मध्य पट्टी को cheap पर शुरू कर संकेत मिलने पर बढ़ाना। |
 | `intent.attemptBand.tauLow` | `0.45` | attempt-first पट्टी की निचली सीमा। |

@@ -75,7 +75,7 @@ describe('real Loader composition', () => {
     const result = JSON.parse(marker![1]!) as { mode: string; strong: string; cheap: string }
     expect(result.mode).toBe('cheap')
     expect(result.strong).toBe('deepseek-v4-pro')
-    expect(result.cheap).toBe('deepseek-v4-flash')
+    expect(result.cheap).toBe('deepseek-flash')
   })
 
   it('rejects an effort outside the adapter vocabulary through the Loader schema', () => {

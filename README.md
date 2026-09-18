@@ -129,12 +129,12 @@ same keys inline.
 | `tiers.strong.followSession` | `false` | `false` = this tier's effort overrides the session's. |
 | `tiers.strong.fallback` | `[]` | Ordered provider/model landings when the tier is unavailable. |
 | `tiers.cheap.provider` | `deepseek-official` | Provider for the implementation tier. |
-| `tiers.cheap.model` | `deepseek-v4-flash` | Catalog id of the cheap model. |
+| `tiers.cheap.model` | `deepseek-flash` | Catalog id of the cheap model. |
 | `tiers.cheap.effort` | `low` | Adapter vocabulary `off` \| `low` \| `high` \| `max`. |
 | `tiers.cheap.followSession` | `true` | `true` = inherit the session's effort so an explicit choice wins. |
 | `tiers.cheap.fallback` | `[]` | Ordered provider/model landings when the tier is unavailable. |
 | `tiers.vision.provider` | `deepseek-official` | Provider for image-carrying turns. |
-| `tiers.vision.model` | `deepseek-v4-flash-vision-exp` | The catalog's image-capable model. |
+| `tiers.vision.model` | `deepseek-flash` | The catalog's image-capable model. |
 | `intent.ruleThreshold` | `0.7` | Confidence at or above which the rule layer decides alone. |
 | `intent.attemptBand.enabled` | `false` | Start the middle band on the cheap tier and escalate on a signal. |
 | `intent.attemptBand.tauLow` | `0.45` | Lower bound of the attempt-first band. |

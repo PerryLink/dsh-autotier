@@ -56,7 +56,7 @@ async function mount(efforts: Record<string, string[] | 'error'> = {}) {
   return { ctx, adapter, preflight, notes, async dispose() { await ctx.fiber.dispose() } }
 }
 
-/** The default cheap tier (followSession, model deepseek-v4-flash). */
+/** The default cheap tier (followSession, model deepseek-flash). */
 const cheap = resolveConfig(undefined).tiers.cheap as ResolvedTierConfig
 
 describe('RoutePreflight', () => {

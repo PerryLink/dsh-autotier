@@ -78,8 +78,8 @@ describe('tier_status tool', () => {
       const value = result.value as Record<string, unknown>
       expect(value.mode).toBe('auto')
       expect(value.strong).toBe('deepseek-official/deepseek-v4-pro@high')
-      expect(value.cheap).toBe('deepseek-official/deepseek-v4-flash')
-      expect(value.vision).toBe('deepseek-official/deepseek-v4-flash-vision-exp')
+      expect(value.cheap).toBe('deepseek-official/deepseek-flash')
+      expect(value.vision).toBe('deepseek-official/deepseek-flash')
       expect(value.guardEnabled).toBe(true)
       expect(value.appliedTier).toBe('')
       expect(value.escalated).toBe(false)

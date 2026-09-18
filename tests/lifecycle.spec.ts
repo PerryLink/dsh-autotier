@@ -42,8 +42,8 @@ describe('mount over the real host seam', () => {
       expect(status.mode).toBe('auto')
       expect(status.tiers.strong).toEqual({ provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high' })
       // The cheap tier follows the session effort, so its route carries no effort.
-      expect(status.tiers.cheap).toEqual({ provider: 'deepseek-official', model: 'deepseek-v4-flash' })
-      expect(status.tiers.vision.model).toBe('deepseek-v4-flash-vision-exp')
+      expect(status.tiers.cheap).toEqual({ provider: 'deepseek-official', model: 'deepseek-flash' })
+      expect(status.tiers.vision.model).toBe('deepseek-flash')
       expect(status.guard).toEqual({ enabled: true, tiers: ['cheap'] })
       expect(harness.settings.scope('autotier')).toBeDefined()
     } finally {

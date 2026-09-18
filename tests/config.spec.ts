@@ -23,14 +23,14 @@ describe('Config schema', () => {
     })
     expect(resolved.tiers?.cheap).toEqual({
       provider: 'deepseek-official',
-      model: 'deepseek-v4-flash',
+      model: 'deepseek-flash',
       effort: 'low',
       followSession: true,
       fallback: [],
     })
     expect(resolved.tiers?.vision).toEqual({
       provider: 'deepseek-official',
-      model: 'deepseek-v4-flash-vision-exp',
+      model: 'deepseek-flash',
     })
     expect(resolved.routingMode).toBe('auto')
     expect(resolved.guard?.tiers).toEqual(['cheap'])

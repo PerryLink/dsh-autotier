@@ -29,7 +29,7 @@ const PROVIDERS = [{ id: 'deepseek-official' }]
 const MODELS: Record<string, { id: string; name: string; inputModalities: string[] }[]> = {
   'deepseek-official': [
     { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', inputModalities: ['text'] },
-    { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', inputModalities: ['text', 'image'] },
+    { id: 'deepseek-flash', name: 'DeepSeek Flash', inputModalities: ['text', 'image'] },
   ],
 }
 
@@ -153,7 +153,7 @@ describe('tier/catalog', () => {
         provider: 'deepseek-official',
         models: [
           { id: 'deepseek-v4-pro', name: 'DeepSeek V4 Pro', inputModalities: ['text'] },
-          { id: 'deepseek-v4-flash', name: 'DeepSeek V4 Flash', inputModalities: ['text', 'image'] },
+          { id: 'deepseek-flash', name: 'DeepSeek Flash', inputModalities: ['text', 'image'] },
         ],
       }])
     } finally {

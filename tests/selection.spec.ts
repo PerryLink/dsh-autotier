@@ -44,11 +44,11 @@ describe('SelectionSync', () => {
   it('mirrors an applied landing into the default-model document once', async () => {
     const harness = await mount()
     try {
-      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-v4-flash', effort: 'low' })
-      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-v4-flash', effort: 'low' })
+      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-flash', effort: 'low' })
+      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-flash', effort: 'low' })
       await Promise.resolve()
       expect(harness.defaultModel.writes).toEqual([
-        { provider: 'deepseek-official', model: 'deepseek-v4-flash', reasoningEffort: 'low' },
+        { provider: 'deepseek-official', model: 'deepseek-flash', reasoningEffort: 'low' },
       ])
     } finally {
       await harness.dispose()
@@ -104,7 +104,7 @@ describe('SelectionSync', () => {
     const harness = await mount()
     try {
       harness.defaultModel.fail = true
-      expect(() => harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-v4-flash' })).not.toThrow()
+      expect(() => harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-flash' })).not.toThrow()
       await Promise.resolve()
       expect(harness.defaultModel.writes).toEqual([])
     } finally {

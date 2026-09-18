@@ -45,7 +45,7 @@ describe('effort ladder', () => {
 describe('resolveRoute', () => {
   const base: LlmCallConfig = {
     provider: 'deepseek-official',
-    model: 'deepseek-v4-flash',
+    model: 'deepseek-flash',
     reasoningEffort: effort('low'),
     temperature: 0.3,
     maxTokens: 4096,
@@ -53,7 +53,7 @@ describe('resolveRoute', () => {
   }
 
   it('returns the same object when the landing already matches', () => {
-    const same = resolveRoute(base, { provider: 'deepseek-official', model: 'deepseek-v4-flash', effort: 'low' })
+    const same = resolveRoute(base, { provider: 'deepseek-official', model: 'deepseek-flash', effort: 'low' })
     expect(same).toBe(base)
   })
 
@@ -70,8 +70,8 @@ describe('resolveRoute', () => {
   })
 
   it('changes effort only when the model is shared', () => {
-    const next = resolveRoute(base, { provider: 'deepseek-official', model: 'deepseek-v4-flash', effort: 'high' })
-    expect(next.model).toBe('deepseek-v4-flash')
+    const next = resolveRoute(base, { provider: 'deepseek-official', model: 'deepseek-flash', effort: 'high' })
+    expect(next.model).toBe('deepseek-flash')
     expect(next.reasoningEffort).toBe('high')
     expect(next.temperature).toBe(0.3)
   })
@@ -80,7 +80,7 @@ describe('resolveRoute', () => {
     const withEffort = resolveRoute(base, { provider: 'deepseek-official', model: 'deepseek-v4-pro' })
     expect(withEffort.reasoningEffort).toBe('low')
     const withoutEffort = resolveRoute(
-      { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
+      { provider: 'deepseek-official', model: 'deepseek-flash' },
       { provider: 'deepseek-official', model: 'deepseek-v4-pro' },
     )
     expect('reasoningEffort' in withoutEffort).toBe(false)
@@ -94,11 +94,11 @@ describe('resolveRoute', () => {
 })
 
 describe('escalation ladder', () => {
-  const cheap = { provider: 'deepseek-official', model: 'deepseek-v4-flash', effort: 'low' as const }
+  const cheap = { provider: 'deepseek-official', model: 'deepseek-flash', effort: 'low' as const }
   const strong = { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high' as const }
 
   it('walks the cheap model effort up before switching models', () => {
-    const rungs = escalationLadder({ provider: 'deepseek-official', model: 'deepseek-v4-flash', reasoningEffort: effort('low') }, cheap, strong)
+    const rungs = escalationLadder({ provider: 'deepseek-official', model: 'deepseek-flash', reasoningEffort: effort('low') }, cheap, strong)
     expect(rungs.map(rung => `${rung.tier}:${rung.route.effort}`)).toEqual(['cheap:high', 'cheap:max', 'strong:high'])
     expect(rungs.at(-1)?.route.model).toBe('deepseek-v4-pro')
   })

@@ -29,8 +29,8 @@ function fullStatus(): TierStatus {
     mode: 'auto',
     tiers: {
       strong: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high' },
-      cheap: { provider: 'deepseek-official', model: 'deepseek-v4-flash' },
-      vision: { provider: 'deepseek-official', model: 'deepseek-v4-flash-vision-exp' },
+      cheap: { provider: 'deepseek-official', model: 'deepseek-flash' },
+      vision: { provider: 'deepseek-official', model: 'deepseek-flash' },
     },
     guard: { enabled: true, tiers: ['cheap'] },
     escalation: { threshold: 2, windowMs: 60_000, ttlMs: 180_000, fallbackTtlMs: 300_000, signature: true },
@@ -51,7 +51,7 @@ describe('TIER_STATUS_SCHEMA', () => {
   it('round-trips a full snapshot including the session view', () => {
     const parsed = TIER_STATUS_SCHEMA.parse(fullStatus())
     expect(parsed.mode).toBe('auto')
-    expect(parsed.tiers.cheap).toEqual({ provider: 'deepseek-official', model: 'deepseek-v4-flash' })
+    expect(parsed.tiers.cheap).toEqual({ provider: 'deepseek-official', model: 'deepseek-flash' })
     expect(parsed.tiers.strong.effort).toBe('high')
     expect(parsed.session.mode).toBe('cheap')
     expect(parsed.session.appliedSource).toBe('rule')

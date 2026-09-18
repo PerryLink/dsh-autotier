@@ -115,12 +115,12 @@ dsh plugin --profile web remove dsh-autotier
 | `tiers.strong.followSession` | `false` | `false` = 本档 effort 覆盖会话自身的设置。 |
 | `tiers.strong.fallback` | `[]` | 该档不可用时的有序 provider/model 落点。 |
 | `tiers.cheap.provider` | `deepseek-official` | 实施档的 provider。 |
-| `tiers.cheap.model` | `deepseek-v4-flash` | 弱档模型的目录 id。 |
+| `tiers.cheap.model` | `deepseek-flash` | 弱档模型的目录 id。 |
 | `tiers.cheap.effort` | `low` | 适配器词表 `off` \| `low` \| `high` \| `max`。 |
 | `tiers.cheap.followSession` | `true` | `true` = 继承会话 effort，让显式选择优先。 |
 | `tiers.cheap.fallback` | `[]` | 该档不可用时的有序 provider/model 落点。 |
 | `tiers.vision.provider` | `deepseek-official` | 含图 turn 的 provider。 |
-| `tiers.vision.model` | `deepseek-v4-flash-vision-exp` | 目录中唯一支持图像模态的模型。 |
+| `tiers.vision.model` | `deepseek-flash` | 目录中唯一支持图像模态的模型。 |
 | `intent.ruleThreshold` | `0.7` | 规则层可独立决策的置信度下限。 |
 | `intent.attemptBand.enabled` | `false` | 中间波段：先跑弱档，出现信号再升级。 |
 | `intent.attemptBand.tauLow` | `0.45` | attempt-first 波段的下界。 |
