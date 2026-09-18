@@ -126,7 +126,7 @@ export const DEFAULT_STRONG = {
 /** The default cheap tier: the catalog's routine/parallel model at low effort. */
 export const DEFAULT_CHEAP = {
   provider: 'deepseek-official',
-  model: 'deepseek-v4-flash',
+  model: 'deepseek-flash',
   effort: 'low' as const,
   followSession: true,
 }
@@ -134,7 +134,7 @@ export const DEFAULT_CHEAP = {
 /** The default vision landing: the catalog's only image-capable model. */
 export const DEFAULT_VISION = {
   provider: 'deepseek-official',
-  model: 'deepseek-v4-flash-vision-exp',
+  model: 'deepseek-flash',
 }
 
 /**
@@ -174,7 +174,7 @@ export const Config: z<Config> = z.object({
     cheap: cheapTier.default({ ...DEFAULT_CHEAP, fallback: [] }),
     vision: z.object({
       provider: z.string().default('deepseek-official'),
-      model: z.string().default('deepseek-v4-flash-vision-exp'),
+      model: z.string().default('deepseek-flash'),
     }).default({ ...DEFAULT_VISION }),
   }).default({
     strong: { ...DEFAULT_STRONG, fallback: [] },

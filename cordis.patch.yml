@@ -31,7 +31,7 @@
           # The implementation tier.
           cheap:
             provider: deepseek-official
-            model: deepseek-v4-flash
+            model: deepseek-flash
             effort: low
             # true = inherit the session's effort, so an explicit user choice
             # still wins inside the cheap tier.
@@ -41,7 +41,7 @@
           # because a text-only model silently substitutes image placeholders.
           vision:
             provider: deepseek-official
-            model: deepseek-v4-flash-vision-exp
+            model: deepseek-flash
         # ---- intent classification -----------------------------------------
         intent:
           # Confidence at or above which the deterministic rule layer decides
