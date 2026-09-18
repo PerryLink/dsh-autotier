@@ -1,10 +1,11 @@
 /**
  * `dsh-autotier`, browser half: mounts the `tier` Remote contribution, then
  * registers the composer tier pill into `conversation.input.left` and the
- * autotier card into the Plugins settings section (`settings.plugins.tab`, id
- * `autotier`). All data arrives through the `remote.tier` namespace — the pill
- * binds the session id the slot factory hands it, the Settings card resolves the
- * session currently open in the shell through the sessions store face.
+ * autotier card on the Plugins page (`plugins.item`, id `autotier`; two views:
+ * a `summary` one-liner and the `page` form). All data arrives through the
+ * `remote.tier` namespace — the pill binds the session id the slot factory
+ * hands it, the card resolves the session currently open in the shell through
+ * the sessions store face.
  *
  * @module dsh-autotier/client
  */
@@ -13,8 +14,8 @@ import type { Context as ClientContext } from '@deepseek-ai/cordis'
 // Type-only: declares the client `remote` service (with `$mount`) on the cordis Context.
 import type {} from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
-// Type-only: pulls the 'settings.plugins.tab' SlotMap declaration into this program.
-import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+// Type-only: pulls the 'plugins.item' SlotMap declaration into this program.
+import type {} from '@deepseek-ai/dsh-client-ui-plugin-manager/client'
 // Type-only: pulls the 'conversation.input.left' SlotMap declaration into this program.
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type { RemoteResult } from '@deepseek-ai/dsh-typert-protocol'
@@ -111,11 +112,11 @@ export async function apply(ctx: ClientContext): Promise<void> {
       }),
     }, TierPill))
 
-    slots.inject('settings.plugins.tab', () => slots.register({
-      name: 'settings.plugins.tab',
+    slots.inject('plugins.item', () => slots.register({
+      name: 'plugins.item',
       id: 'autotier',
       order: 45,
-      label: () => t('tab'),
+      label: () => 'AutoTier',
       locale: NS,
       inject: (): TierSettingsInjected => ({
         status: async () => statusFor(currentId()),
@@ -129,17 +130,29 @@ export async function apply(ctx: ClientContext): Promise<void> {
 /**
  * Read the session currently open in the shell from the sessions store face.
  * Structural on purpose: the store shape differs across harness lines, so only
- * the leaf is read, and an unknown shape degrades to `undefined` (the card then
- * shows the read-only view and disables the selector).
+ * the leaves are read, and an unknown shape degrades to `undefined` (the card
+ * then shows the read-only view with the no-session notice and disables the
+ * selector).
+ *
+ * The 0.1.6 line removed `SessionListState.current`; the main-view session is
+ * derived the way upstream does it (ui-session main-binding watch): the list
+ * snapshot's `byId` entries carry `retainedBy.mainView`, and the entry the
+ * shell retains in its main view is the current session.
  */
 function currentSessionId(sessions: unknown): string | undefined {
   try {
-    const list = (sessions as { list?: unknown } | null | undefined)?.list
-    if (typeof list !== 'object' || list === null) return undefined
-    const getSnapshot = (list as { getSnapshot?: unknown }).getSnapshot
+    const face = sessions as {
+      list?: { getSnapshot?: () => { byId?: unknown } } | null
+    } | null | undefined
+    const getSnapshot = face?.list?.getSnapshot
     if (typeof getSnapshot !== 'function') return undefined
-    const current = (getSnapshot as () => { current?: unknown })().current
-    return typeof current === 'string' ? current : undefined
+    const byId = getSnapshot().byId
+    if (typeof byId !== 'object' || byId === null) return undefined
+    const entry = Object.values(byId).find(candidate =>
+      ((candidate as { retainedBy?: { mainView?: number } | null } | null | undefined)?.retainedBy?.mainView ?? 0) > 0,
+    )
+    const id = (entry as { id?: unknown } | undefined)?.id
+    return typeof id === 'string' ? id : undefined
   } catch {
     return undefined
   }

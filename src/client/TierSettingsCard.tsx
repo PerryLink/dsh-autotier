@@ -1,13 +1,15 @@
 /**
- * The autotier Settings card (Plugins section): the session routing-mode
- * selector, the read-only tier landings, the live session state, and the model
- * catalog dropdown fed by `tier/catalog`.
+ * The autotier card on the Plugins page (`plugins.item`, id `autotier`): the
+ * session routing-mode selector, the read-only tier landings, the live session
+ * state, and the model catalog dropdown fed by `tier/catalog`.
  *
- * The selector writes the *session* override for the session currently open in
- * the shell (resolved by the client entry through the sessions store face), so
- * it stays non-persistent exactly like the pill and `/tier`. When no session is
- * open the host answers with an empty session view and the selector is disabled
- * with an explanation instead of failing silently.
+ * The Plugins page renders it in two views: `summary` (the one-liner under the
+ * card title) and `page` (the full panel). The selector writes the *session*
+ * override for the session currently open in the shell (resolved by the client
+ * entry through the sessions store face), so it stays non-persistent exactly
+ * like the pill and `/tier`. When no session is open the host answers with an
+ * empty session view and the selector is disabled with an explanation instead
+ * of failing silently.
  *
  * @module dsh-autotier/client/TierSettingsCard
  */
@@ -28,9 +30,9 @@ export interface TierSettingsInjected {
   setMode: (mode: RoutingMode) => Promise<TierStatus>
 }
 
-/** Full component props assembled by the Plugins-tab renderer. */
+/** Full component props assembled by the Plugins-page renderer. */
 export type TierSettingsCardProps =
-  PropsRuntime<'settings.plugins.tab'>
+  PropsRuntime<'plugins.item'>
   & PropsLocale<'settings.autotier'>
   & InjectFace<TierSettingsInjected>
 
@@ -39,8 +41,8 @@ type ViewState =
   | { readonly status: 'error'; readonly message: string }
   | { readonly status: 'ready'; readonly snapshot: TierStatus; readonly catalog: TierCatalog }
 
-/** The Settings card body. */
-export function TierSettingsCard({ status, catalog, setMode, t }: TierSettingsCardProps): ReactNode {
+/** The Plugins-page card body. */
+export function TierSettingsCard({ status, catalog, setMode, t, view }: TierSettingsCardProps): ReactNode {
   const [state, setState] = useState<ViewState>({ status: 'loading' })
   const [selected, setSelected] = useState('')
   const [busy, setBusy] = useState(false)
@@ -70,6 +72,17 @@ export function TierSettingsCard({ status, catalog, setMode, t }: TierSettingsCa
     } finally {
       setBusy(false)
     }
+  }
+
+  if (view === 'summary') {
+    if (state.status === 'loading') return <span className="datr-meta" data-dsh-autotier>{t('loading')}</span>
+    if (state.status === 'error') {
+      return <span className="datr-meta" data-dsh-autotier>{t('error')} {state.message}</span>
+    }
+    const summary = landings(state.snapshot)
+      .map(entry => `${entry.tier === 'vision' ? t('tierVision') : t(tierKey(entry.tier))}: ${landingText(entry.route)}`)
+      .join(' · ')
+    return <span className="datr-meta" data-dsh-autotier>{`${t(modeKey(state.snapshot.session.mode))} · ${summary}`}</span>
   }
 
   if (state.status === 'loading') return <p className="datr-status" data-dsh-autotier>{t('loading')}</p>
