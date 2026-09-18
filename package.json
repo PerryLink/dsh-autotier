@@ -214,6 +214,7 @@
     "build": "node scripts/prepare.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
     "typecheck:ci": "tsc -p tsconfig.ci.json --noEmit",
+    "check:ruler-live": "node scripts/assert-ruler-live.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
