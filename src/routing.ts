@@ -146,6 +146,17 @@ export class AutotierRouter {
     this.ctx.on('agent/error', payload => this.onAgentError(payload.agent, payload.error))
     this.ctx.on('agent/request-error', (payload, next) => this.onRequestError(payload.agent, payload.provider, payload.failure, next))
     this.ctx.on('session/event', (session, event) => this.onSessionEvent(session, event))
+    // Backfill the per-agent state at creation so the first request never pays
+    // the lazy-init path on a hot turn; the listener is synchronous and a
+    // failure here is contained (the lazy path still exists as the fallback).
+    this.ctx.on('agent/created', payload => {
+      try {
+        this.states.for(payload.agent)
+      } catch (error) {
+        this.ctx.logger.warn('dsh-autotier: could not backfill routing state for the created agent (%o)', error)
+      }
+      return undefined
+    })
     this.ctx.effect(() => () => {
       this.disposed = true
       this.lifetime.abort()
