@@ -26,10 +26,10 @@ DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | 兼容；compat 工作流对该线做端到端安装验证 |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | 兼容；已端到端实测（真实 profile 安装、`--dump-config` 行、keyless headless 冒烟）并纳入 compat 矩阵 |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | 兼容；已在 alpha.2 真机验证（挂载期目录检查、`--dump-config` 行）并纳入 compat 矩阵 |
 | `@deepseek-ai/cordis` `^4.0.2`、`@deepseek-ai/schemastery` `^3.18.2` | peer 基线 |
 
-peer 范围显式列出两条已发布线（`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1
-<0.2.0`）——因为仅含较早版本元组预发布比较符的 semver 范围无法接纳更晚的 alpha；
+peer 范围显式列出三条已发布线（`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`）——因为仅含较早版本元组预发布比较符的 semver 范围无法接纳更晚的 alpha；
 每次发布波同步刷新。
 
 本插件只驻留 host 平面，不需要自带 agent preset：host 行对所有会话生效。

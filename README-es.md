@@ -31,10 +31,10 @@ strong con un TTL de retorno.
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible; el flujo compat instala esta línea de extremo a extremo |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | compatible; verificada de extremo a extremo (perfil real, fila en `--dump-config`, smoke keyless) y en la matriz compat |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | compatible; verificado en un host alpha.2 real (verificación de catálogo al montar, fila en `--dump-config`) y en la matriz compat |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
 
-Los rangos de peers nombran ambas líneas publicadas (`>=0.1.2-rc.1 <0.2.0 ||
->=0.1.5-alpha.1 <0.2.0`), porque un rango cuyo único comparador de prerelease
+Los rangos de peers nombran todas las líneas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), porque un rango cuyo único comparador de prerelease
 está en una tupla anterior no admite un alpha posterior. Se refrescan por ola.
 
 El plugin vive solo en el plano host y no necesita un preset propio: la fila host

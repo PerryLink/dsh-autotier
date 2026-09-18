@@ -29,10 +29,10 @@ escalate to the strong tier with a TTL fallback.
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible; the compat workflow installs this line end-to-end |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | compatible; verified end-to-end (real profile install, `--dump-config` row, keyless headless smoke) and in the compat matrix |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | compatible; verified on a live alpha.2 host (mount-time catalogue check, `--dump-config` row) and in the compat matrix |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer baseline |
 
-Peer ranges name both published lines explicitly (`>=0.1.2-rc.1 <0.2.0 ||
->=0.1.5-alpha.1 <0.2.0`), because a semver range whose only prerelease
+Peer ranges name all published lines explicitly (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), because a semver range whose only prerelease
 comparator sits on an earlier version tuple does not admit a later alpha.
 They are refreshed per published wave.
 

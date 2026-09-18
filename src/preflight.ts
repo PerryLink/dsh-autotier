@@ -107,7 +107,7 @@ export class RoutePreflight {
 /**
  * Mount-time default-model catalogue membership check.
  *
- * The 0.1.6 line removed the `deepseek-v4-flash*` catalogue ids and introduced
+ * The 0.1.6 line removed the deepseek v4-flash* catalogue ids and introduced
  * `deepseek-flash` (image-capable). On that catalogue generation a default
  * tier id that is not in the host catalogue must fail the mount loudly —
  * silently degrading to a text-only passthrough is exactly the N7 regression

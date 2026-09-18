@@ -30,10 +30,10 @@ retorno.
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | compatível; o fluxo compat instala esta linha ponta a ponta |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | compatível; verificada ponta a ponta (perfil real, linha no `--dump-config`, smoke keyless) e na matriz compat |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | compatível; verificado em um host alpha.2 real (verificação de catálogo na montagem, linha no `--dump-config`) e na matriz compat |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
 
-Os ranges de peers nomeiam as duas linhas publicadas (`>=0.1.2-rc.1 <0.2.0 ||
->=0.1.5-alpha.1 <0.2.0`), porque um range cujo único comparador de prerelease
+Os ranges de peers nomeiam todas as linhas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), porque um range cujo único comparador de prerelease
 está numa tupla anterior não admite um alpha posterior. São atualizados por onda.
 
 O plugin vive apenas no plano host e não precisa de preset próprio: a linha host

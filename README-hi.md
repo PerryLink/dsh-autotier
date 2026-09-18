@@ -29,10 +29,10 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 |---|---|
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | संगत; compat वर्कफ़्लो इस लाइन को end-to-end इंस्टॉल करता है |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | संगत; end-to-end सत्यापित (वास्तविक profile, `--dump-config` पंक्ति, keyless smoke) और compat मैट्रिक्स में |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | संगत; लाइव alpha.2 होस्ट पर सत्यापित (माउंट-समय कैटलॉग जाँच, `--dump-config` पंक्ति) और compat मैट्रिक्स में |
 | `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer आधार |
 
-peer ranges दोनों प्रकाशित लाइनें स्पष्ट रूप से लिखती हैं (`>=0.1.2-rc.1 <0.2.0
-|| >=0.1.5-alpha.1 <0.2.0`), क्योंकि जिस range का एकमात्र prerelease comparator
+peer ranges सभी प्रकाशित लाइनें स्पष्ट रूप से लिखती हैं (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), क्योंकि जिस range का एकमात्र prerelease comparator
 पुराने tuple पर हो वह बाद के alpha को स्वीकार नहीं करता। हर प्रकाशन-लहर पर
 रिफ़्रेश होता है।
 

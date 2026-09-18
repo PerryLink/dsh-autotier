@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- The default cheap and vision tiers now land on `deepseek-flash` (the 0.1.6 catalogue id, image-capable) instead of the removed `deepseek-v4-flash*` ids — a behavior change: image turns no longer fail with `UNSUPPORTED_CONTENT` on hosts with the new catalogue, and the vision tier is genuinely multimodal again.
+- The mount now fails loudly when a default tier model id is missing from a new-generation host catalogue (a missing id used to degrade silently to a text-only passthrough); hosts whose catalogue predates `deepseek-flash` keep the documented degradation and skip the check.
+- The card moved from the Settings → Plugins tab to the Plugins page (`plugins.item`, Official group) with a `summary` one-liner and a `page` form, and reads the shell's current session from the main-view retention — the removed `SessionListState.current` no longer leaves the selector permanently disabled.
+- Declared `dsh.manifestVersion: 1` and the `engines.dsh` range; the peer range now also admits the 0.1.6 line.
+
+### Fixed
+
+- The strict Typert codecs now carry the `create()` factory the 0.1.6-alpha.2 typert-loader requires, so the plugin tree boots on the new line (the dual-face codec keeps the rc.2 `schema` field too).
+- Per-agent routing state is backfilled synchronously on `agent/created`, so the first request of a turn no longer pays the lazy-init path.
+
 ## [0.2.3] - 2026-09-12
 
 ### Changed
