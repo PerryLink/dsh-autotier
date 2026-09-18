@@ -16,7 +16,7 @@ import {
 } from '@deepseek-ai/dsh-llm'
 import { describe, expect, it } from 'vitest'
 import { resolveConfig, type ResolvedTierConfig } from '../src/config.ts'
-import { RoutePreflight } from '../src/preflight.ts'
+import { assertTierDefaultsInCatalog, RoutePreflight } from '../src/preflight.ts'
 import type { TierRoute } from '../src/types.ts'
 
 /** An adapter that declares a fixed effort vocabulary per model. */
@@ -141,6 +141,56 @@ describe('RoutePreflight', () => {
       await harness.preflight.sanitize(route, tier)
       await harness.preflight.sanitize(route, tier)
       expect(harness.adapter.lookups).toEqual(['cheap-model'])
+    } finally {
+      await harness.dispose()
+    }
+  })
+})
+
+/** Mount a real LLM runtime with the `deepseek-official` provider route. */
+async function mountCatalog(efforts: Record<string, string[] | 'error'> = {}) {
+  const ctx = new Context()
+  await ctx.plugin(LlmRuntime)
+  const adapter = new DeclaringAdapter(efforts)
+  ctx.llm.registerAdapter(['deepseek-official'], adapter)
+  return { ctx, adapter, async dispose() { await ctx.fiber.dispose() } }
+}
+
+describe('assertTierDefaultsInCatalog', () => {
+  it('passes when every default tier id resolves in the new-generation catalogue', async () => {
+    const harness = await mountCatalog({ 'deepseek-flash': [], 'deepseek-v4-pro': [] })
+    try {
+      await expect(assertTierDefaultsInCatalog(harness.ctx, resolveConfig(undefined).tiers)).resolves.toBeUndefined()
+    } finally {
+      await harness.dispose()
+    }
+  })
+
+  it('fails loudly when a default id is outside the new-generation catalogue', async () => {
+    // deepseek-flash resolves (new-generation marker); the strong default is absent.
+    const harness = await mountCatalog({ 'deepseek-v4-pro': 'error' })
+    try {
+      await expect(assertTierDefaultsInCatalog(harness.ctx, resolveConfig(undefined).tiers)).rejects.toThrow(
+        /strong model "deepseek-official\/deepseek-v4-pro" is not in the host catalogue/,
+      )
+    } finally {
+      await harness.dispose()
+    }
+  })
+
+  it('skips on an old-generation catalogue that resolves none of the default ids', async () => {
+    const harness = await mountCatalog({ 'deepseek-flash': 'error', 'deepseek-v4-pro': 'error' })
+    try {
+      await expect(assertTierDefaultsInCatalog(harness.ctx, resolveConfig(undefined).tiers)).resolves.toBeUndefined()
+    } finally {
+      await harness.dispose()
+    }
+  })
+
+  it('skips when the deepseek-official provider is not registered', async () => {
+    const harness = await mount()
+    try {
+      await expect(assertTierDefaultsInCatalog(harness.ctx, resolveConfig(undefined).tiers)).resolves.toBeUndefined()
     } finally {
       await harness.dispose()
     }

@@ -14,7 +14,7 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import type { ResolvedTierConfig } from './config.ts'
+import type { ResolvedConfig, ResolvedTierConfig } from './config.ts'
 import type { TierRoute } from './types.ts'
 
 /** One cached model capability answer. */
@@ -101,5 +101,72 @@ export class RoutePreflight {
       safe = { provider: safe.provider, model: safe.model }
     }
     return safe
+  }
+}
+
+/**
+ * Mount-time default-model catalogue membership check.
+ *
+ * The 0.1.6 line removed the `deepseek-v4-flash*` catalogue ids and introduced
+ * `deepseek-flash` (image-capable). On that catalogue generation a default
+ * tier id that is not in the host catalogue must fail the mount loudly —
+ * silently degrading to a text-only passthrough is exactly the N7 regression
+ * this check guards against.
+ *
+ * Generation gate: hosts whose catalogue predates the new vocabulary (e.g.
+ * `0.1.2-rc.1`, where none of the default ids exist) keep the accepted M2
+ * degradation (unlisted id ⇒ text-only) and skip the check with one
+ * documented log line, so mounting on the old compat rows is preserved.
+ *
+ * @param ctx - the plugin context.
+ * @param tiers - the resolved tier landings to verify.
+ * @throws {Error} when the catalogue is the new generation and a default
+ *   model id is not present in it.
+ */
+export async function assertTierDefaultsInCatalog(ctx: Context, tiers: ResolvedConfig['tiers']): Promise<void> {
+  const provider = 'deepseek-official'
+  const llm = ctx.llm
+  // Minimal llm faces (scripted harnesses, pared-down compositions) lack the
+  // catalogue seam; they keep the accepted degraded behavior and skip.
+  if (llm === undefined || typeof llm.listProviders !== 'function' || typeof llm.resolveModelInfo !== 'function') {
+    ctx.logger.info('dsh-autotier: the llm catalogue seam is unavailable; skipping the default-model catalogue check')
+    return
+  }
+  const registered = llm.listProviders().some(entry => entry.id === provider)
+  if (!registered) {
+    ctx.logger.info('dsh-autotier: provider "%s" is not registered; skipping the default-model catalogue check', provider)
+    return
+  }
+  const defaults = [
+    ['strong', tiers.strong.model],
+    ['cheap', tiers.cheap.model],
+    ['vision', tiers.vision.model],
+  ] as const
+  // New-generation probe: the catalogue is the 0.1.6 vocabulary when any of
+  // the default ids resolves; an old catalogue resolves none of them.
+  let newGeneration = false
+  for (const [, model] of defaults) {
+    try {
+      await llm.resolveModelInfo(provider, model)
+      newGeneration = true
+      break
+    } catch {
+      // Old catalogue or absent id: keep probing the other defaults.
+    }
+  }
+  if (!newGeneration) {
+    ctx.logger.info(
+      'dsh-autotier: the host catalogue predates the deepseek-flash vocabulary; skipping the default-model catalogue check (unlisted ids degrade to text-only on this host)',
+    )
+    return
+  }
+  for (const [tier, model] of defaults) {
+    try {
+      await llm.resolveModelInfo(provider, model)
+    } catch {
+      throw new Error(
+        `dsh-autotier: the default ${tier} model "${provider}/${model}" is not in the host catalogue; refusing to mount with a silent text-only landing`,
+      )
+    }
   }
 }

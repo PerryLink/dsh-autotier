@@ -21,6 +21,7 @@ import { registerTierCommand } from './command.ts'
 import { Config, resolveConfig, validateConfig, type Config as AutotierConfig } from './config.ts'
 import { registerGuardHook } from './guard.ts'
 import { AutotierRouter } from './routing.ts'
+import { assertTierDefaultsInCatalog } from './preflight.ts'
 import { AutotierService } from './service.ts'
 import { AgentStateStore, registerTierProjection } from './state.ts'
 import { TierRemoteService } from './tier-remote.ts'
@@ -132,12 +133,17 @@ export const inject = ['settings', 'llm', 'tools', 'commands', 'sessions']
  *
  * @param ctx - the plugin context.
  * @param config - the raw row configuration; every field is optional.
- * @throws {Error} when the configuration fails the cross-field judgement.
+ * @throws {Error} when the configuration fails the cross-field judgement, or
+ *   when a default tier model id is absent from a new-generation host catalogue.
  */
-export function apply(ctx: Context, config: AutotierConfig = {}): void {
+export async function apply(ctx: Context, config: AutotierConfig = {}): Promise<void> {
   // Resolve first so a bad row fails at mount, before any namespace is
   // registered (fail loud, and leave no half-mounted state behind).
   const resolved = resolveConfig(config)
+  // Mount-time catalogue membership gate: on the 0.1.6 catalogue generation a
+  // default tier id outside the catalogue fails the mount loudly instead of
+  // silently degrading to a text-only passthrough (see assertTierDefaultsInCatalog).
+  await assertTierDefaultsInCatalog(ctx, resolved.tiers)
   // Consumer: the plugin reads and validates the shared settings namespace.
   const scope = ctx.settings.register('autotier', Config, {
     base: config,
