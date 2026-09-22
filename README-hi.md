@@ -28,14 +28,25 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 
 | Harness | स्थिति |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | संगत; compat वर्कफ़्लो इस लाइन को end-to-end इंस्टॉल करता है |
-| `@deepseek-ai/dsh` `0.1.5-rc.2` | संगत; end-to-end सत्यापित (वास्तविक profile, `--dump-config` पंक्ति, keyless smoke) और compat मैट्रिक्स में |
-| `@deepseek-ai/dsh` `0.1.6-alpha.2` | संगत; लाइव alpha.2 होस्ट पर सत्यापित (माउंट-समय कैटलॉग जाँच, `--dump-config` पंक्ति) और compat मैट्रिक्स में |
-| `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer आधार |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | अब समर्थित नहीं; वह लाइन उस `SettingsForms` अनुबंध से पुरानी है जिस पर यह प्लगइन अब लक्ष्य करता है |
+| `@deepseek-ai/dsh` `0.1.5-rc.2` | अब समर्थित नहीं; उसका `settings.register` / `settings/updated` अनुबंध upstream में हटा दिया गया |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | अब समर्थित नहीं; वही हटाव, `SettingsForms` वाली पहली लाइन |
+| `@deepseek-ai/dsh` `0.1.7-alpha.1` | **आवश्यक**; मेल खाते checkout (`typecheck`) और प्रकाशित पैकेजों (`typecheck:ci`, 214 टेस्ट) दोनों पर सत्यापित |
+| `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer आधार |
 
-peer ranges सभी प्रकाशित लाइनें स्पष्ट रूप से लिखती हैं (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), क्योंकि जिस range का एकमात्र prerelease comparator
+peer ranges चारों प्रकाशित लाइनें स्पष्ट रूप से लिखती हैं (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), क्योंकि जिस range का एकमात्र prerelease comparator
 पुराने tuple पर हो वह बाद के alpha को स्वीकार नहीं करता। हर प्रकाशन-लहर पर
-रिफ़्रेश होता है।
+रिफ़्रेश होता है। घोषित range जानबूझकर सत्यापित range से व्यापक है: यह दर्ज करती
+है कि manifest क्या स्वीकार करता है, यह नहीं कि क्या परखा गया।
+
+**यह रिलीज़ एक breaking adaptation है।** `0.1.6` पीढ़ी के होस्ट ने वह settings
+*provider* सीवन हटा दिया जिस पर यह प्लगइन बना था: `@deepseek-ai/dsh-settings-file`
+पैकेज अब मौजूद नहीं है, `ctx.settings` अब `SettingsForms` है (schema→form
+प्रोजेक्टर, जिसमें `register` नहीं है), और `settings/updated` भी नहीं है। कोई
+साझा सतह ऐसी नहीं है जो एक प्लगइन को दूसरे प्लगइन का settings दस्तावेज़ देखने
+दे, इसलिए इस प्लगइन का कोई संस्करण दोनों अनुबंध एक साथ सहन नहीं कर सकता।
+कॉन्फ़िगरेशन अब होस्ट के volatile-config तंत्र से बहती है; **प्रति-सत्र रूटिंग
+मोड** — वही सेटिंग जो रनटाइम पर व्यवहार बदलती है — अपरिवर्तित है।
 
 यह प्लगइन केवल host plane पर रहता है और अपना preset नहीं माँगता: host पंक्ति
 हर सत्र पर लागू होती है। *आपके* preset में एक प्रॉम्प्ट खंड वैकल्पिक है और
@@ -109,8 +120,9 @@ dsh plugin --profile web add .
 dsh plugin --profile web remove dsh-autotier
 ```
 
-पंक्ति, उसका settings namespace, उसका कमांड, उसके टूल और सभी listeners
-प्लगइन के साथ हट जाते हैं; settings दस्तावेज़ के बाहर कुछ नहीं लिखा जाता।
+पंक्ति, उसका कमांड, उसके टूल और सभी listeners प्लगइन के साथ हट जाते हैं।
+Plugins पेज से सहेजी गई कॉन्फ़िगरेशन सक्रिय profile patch में रहती है और उस
+profile की है, इस प्लगइन की नहीं; पंक्ति हटाने पर वह वहीं अछूती रहती है।
 
 ## कॉन्फ़िगरेशन
 
@@ -159,9 +171,18 @@ dsh plugin --profile web remove dsh-autotier
 | `escalation.signature` | `true` | हर विफलता के बजाय समान हस्ताक्षर की पुनरावृत्ति गिनें। |
 | `routingMode` | `auto` | `auto` \| `strong` \| `cheap` \| `delegated` \| `off`। |
 
-सभी कुंजियाँ `autotier` settings namespace (`$DSH_HOME/settings.yaml`) से
-लाइव भी बदली जा सकती हैं; क्रॉस-फ़ील्ड शर्त तोड़ने वाला लेखन सहेजने के समय
-अस्वीकार हो जाता है और अंतिम वैध नीति लागू रहती है।
+सभी कुंजियाँ Plugins पेज पर इस प्लगइन के कार्ड से लाइव भी बदली जा सकती हैं:
+होस्ट नया मान schema के विरुद्ध जाँचता है और उसे `loader/volatile-update` से
+कमिट करता है, फिर यह प्लगइन पूरी कॉन्फ़िगरेशन को उसी क्रॉस-फ़ील्ड जज से दोबारा
+आँकता है जो माउंट के समय चलता है। क्रॉस-फ़ील्ड शर्त तोड़ने वाला मान (दो tiers
+एक ही रूट पर, झूला रोक न पाने वाला hysteresis युग्म, बिना pattern और बिना tool
+वाला नियम) अंतिम वैध नीति को चालू रहने देता है, बजाय किसी अनरूटेबल चीज़ को
+लागू करने के।
+
+`routingMode` अकेली ऐसी कुंजी है जो लाइव **नहीं** है: वह composition का
+डिफ़ॉल्ट है, और रनटाइम स्विच वह प्रति-सत्र override है जो `/tier`, composer
+pill और कार्ड का सेलेक्टर लिखते हैं। उसे भी लाइव बनाने से एक ही व्यवहार के दो
+मालिक हो जाते।
 
 ## टूल और सतहें
 
@@ -228,7 +249,7 @@ dsh plugin --profile web remove dsh-autotier
 ```bash
 pnpm install
 pnpm run typecheck      # स्थानीय harness checkout के type faces के विरुद्ध
-pnpm run typecheck:ci   # प्रकाशित 0.1.5-rc.2 faces के विरुद्ध (CI यही चलाता है)
+pnpm run typecheck:ci   # प्रकाशित 0.1.7-alpha.1 faces के विरुद्ध (CI यही चलाता है)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

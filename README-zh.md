@@ -25,13 +25,20 @@ DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个
 
 | Harness | 状态 |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | 兼容；compat 工作流对该线做端到端安装验证 |
-| `@deepseek-ai/dsh` `0.1.5-rc.2` | 兼容；已端到端实测（真实 profile 安装、`--dump-config` 行、keyless headless 冒烟）并纳入 compat 矩阵 |
-| `@deepseek-ai/dsh` `0.1.6-alpha.2` | 兼容；已在 alpha.2 真机验证（挂载期目录检查、`--dump-config` 行）并纳入 compat 矩阵 |
-| `@deepseek-ai/cordis` `^4.0.2`、`@deepseek-ai/schemastery` `^3.18.2` | peer 基线 |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | 不再支持；该线早于本插件现在对准的 `SettingsForms` 契约 |
+| `@deepseek-ai/dsh` `0.1.5-rc.2` | 不再支持；它所暴露的 `settings.register` / `settings/updated` 契约已被上游删除 |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | 不再支持；同一处删除，首个带 `SettingsForms` 的版本 |
+| `@deepseek-ai/dsh` `0.1.7-alpha.1` | **必需**；已对同版 checkout（`typecheck`）与已发布包（`typecheck:ci`、214 项测试）双向验证 |
+| `@deepseek-ai/cordis` `^4.0.3`、`@deepseek-ai/cosmokit` `^1.8.4`、`@deepseek-ai/schemastery` `^3.18.3` | peer 基线 |
 
-peer 范围显式列出三条已发布线（`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`）——因为仅含较早版本元组预发布比较符的 semver 范围无法接纳更晚的 alpha；
-每次发布波同步刷新。
+peer 范围显式列出四条已发布线（`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`）——因为仅含较早版本元组预发布比较符的 semver 范围无法接纳更晚的 alpha；
+每次发布波同步刷新。声明的范围刻意宽于已验证范围：它记录清单接受什么，而不是测过什么。
+
+**本次发布是破坏性适配。** `0.1.6` 代宿主移除了本插件赖以构建的 settings **provider** 缝：
+`@deepseek-ai/dsh-settings-file` 整包消失，`ctx.settings` 现为 `SettingsForms`
+（schema→表单投影器，没有 `register`），`settings/updated` 亦不复存在。没有任何共享面能让一个插件观察另一个插件的设置文档，
+因此本插件无法同时支持两种契约。配置现在走宿主的 volatile 配置机制；真正在运行时改变行为的
+**按会话路由模式**未变。
 
 本插件只驻留 host 平面，不需要自带 agent preset：host 行对所有会话生效。
 在你的 preset 中加一段提示是可选项，仅用于让模型看见路由决策
@@ -149,8 +156,15 @@ dsh plugin --profile web remove dsh-autotier
 | `escalation.signature` | `true` | 按同签名复发计数，而非统计每次失败。 |
 | `routingMode` | `auto` | `auto` \| `strong` \| `cheap` \| `delegated` \| `off`。 |
 
-所有键也可通过 `autotier` settings 命名空间（`$DSH_HOME/settings.yaml`）热改；
-违反跨字段约束的写入会在保存期被拒绝，并保留上一份可用策略。
+所有键也可在 Plugins 页的本插件卡片上热改：Host 先按 schema 校验新值，
+再以 `loader/volatile-update` 提交；本插件随后用与挂载期同一套跨字段判据
+重新裁决整份配置。违反跨字段要求的值（两个 tier 落在同一路由、
+无法止住抖动的滞回对、既无 pattern 也无 tool 的规则）会让**上一份可用策略**
+继续生效，而不是换上一个无法路由的配置。
+
+`routingMode` 是唯一**不**热更的键：它是组合默认值，运行时开关是由
+`/tier`、输入框胶囊与卡片选择器写入的按会话覆盖。让它同时热更
+会让同一行为有两个归属。
 
 ## 工具与表面
 
@@ -207,7 +221,7 @@ dsh plugin --profile web remove dsh-autotier
 ```bash
 pnpm install
 pnpm run typecheck      # 对照本地 harness checkout 的类型面
-pnpm run typecheck:ci   # 对照已发布的 0.1.5-rc.2 类型面（CI 实际执行）
+pnpm run typecheck:ci   # 对照已发布的 0.1.7-alpha.1 类型面（CI 实际执行）
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

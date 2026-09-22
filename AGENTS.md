@@ -12,13 +12,21 @@ records repo-local decisions.
   `sessionProjections` and `sandboxPolicy` are read with `ctx.get()` and degrade
   when absent.
 - `src/schema.ts` — the Schemastery schema and the raw (partial) config
-  interfaces it resolves. Kept free of executable logic so a schema module never
-  mixes function values into its declarations (the plugin-doctor K4 rule).
+  interfaces it resolves, plus the `VolatileConfig` face the Loader hands
+  `apply`. Kept free of executable logic so a schema module never mixes function
+  values into its declarations (the plugin-doctor K4 rule).
 - `src/config.ts` — the explicit `resolveConfig` judge (no hidden `?? default`
-  in callers) and the resolved interfaces. Object defaults are COMPLETE objects;
-  the adapter-owned effort vocabulary is `off | low | high | max` (there is no
-  `medium`).
-- `src/service.ts` — `ctx.autotier` (`status()` and the live settings scope).
+  in callers) and the resolved interfaces. It accepts BOTH config faces (plain
+  data and the Loader's `Volatile` references) and is the plugin's only
+  cross-field judge: Schemastery cannot express those rules and is all the Host
+  validates a form write against, so mount and every live update route through
+  here. Object defaults are COMPLETE objects; the adapter-owned effort
+  vocabulary is `off | low | high | max` (there is no `medium`).
+- `src/service.ts` — `ctx.autotier` (`status()` and `reconfigure()`, which the
+  settings binding calls to swap the live policy).
+- `src/settings.ts` — the host settings seam: claims the instance's Plugins-page
+  policy (`ctx.settings.configure({ auto: false })`) and re-resolves the routing
+  policy on every `loader/volatile-update`.
 - `src/types.ts` — shared vocabulary (tier ids, effort ids, routing modes,
   scenarios, route/status shapes).
 - `src/wire.ts` — the `tier` Remote wire vocabulary: `TierStatus` (the public
@@ -34,15 +42,22 @@ records repo-local decisions.
   `/tier` read; `agents` is read optionally through the injected resolver.
 - `src/client/` — browser half: `$mount`s the Remote contribution, registers the
   composer pill into `conversation.input.left` (id `tier-pill`) and the Settings
-  card into `settings.plugins.tab` (id `autotier`), with a pure presenter
+  card into `plugins.item` (id `autotier`), with a pure presenter
   (`present.ts`), inline scoped stylesheet (`styles.ts`), and en/zh dictionaries
   (`locales.ts`). The slot registry is read through a local structural
-  `SlotsFace` (its owning package differs across host lines).
-- `tests/` — vitest over the REAL published `0.1.5-rc.2` host packages
-  (`Context`, `SessionStore`, `SystemPrompt`, `ToolRuntime`, `CommandRuntime`,
-  in-memory `SettingsProvider`) plus one real Loader composition. The browser
-  half is covered through its pure units (wire codecs, presenter, dictionaries)
-  and the `tier` service through a real mount with a scripted `agents` face.
+  `SlotsFace` (its owning package differs across host lines). The browser half
+  needs no `configForms` entry: the Host generates the config form for the
+  `autotier` row from its `Config` schema, and this card is the dedicated
+  runtime surface (routing mode, live landings, catalog).
+- `tests/` — vitest over the REAL published `0.1.7-alpha.1` host packages
+  (`Context`, `SessionStore`, `SystemPrompt`, `ToolRuntime`, `CommandRuntime`)
+  plus one real Loader composition. The `settings` service is the one stand-in:
+  the host's real `SettingsForms` binds to `configEditor`, `profileContext` and
+  the Loader's fiber graph, none of which this plugin consumes, while the
+  plugin's contract with it is only `configure({ auto })` and
+  `loader/volatile-update`. The browser half is covered through its pure units
+  (wire codecs, presenter, dictionaries) and the `tier` service through a real
+  mount with a scripted `agents` face.
 
 ## Hard rules applied here
 
@@ -59,15 +74,27 @@ records repo-local decisions.
 - **Guard is defence in depth**: it never weakens `dsh-defend`, the approval
   service or the sandbox policy. A guard that throws escalates the call instead
   of allowing it.
-- **Fail loud**: invalid configuration throws at mount or at the settings write,
+- **Fail loud**: invalid configuration throws at mount, and a live update the
+  cross-field judge refuses keeps the last good policy and logs — configuration
   never silently disables routing.
+- **One cross-field judge**: Schemastery cannot express this plugin's cross-field
+  rules and is all the Host validates a settings-form write against, so
+  `resolveConfig` is the only judge and both paths (mount, live update) call it.
+  `.volatile()` sits on each top-level Config section — never inside an array,
+  dict or union, which Schemastery forbids — and `routingMode` stays plain
+  because the per-session override is its runtime switch.
 - **Model-visible ⟺ logged**: the only model-visible content is the `/tier`
-  output and the guard's corrective denial. No custom session event is appended
-  (that vocabulary is fail-closed on `0.1.2-alpha.1` and later); the trail is the
-  plugin logger plus the live `autotier/tier-changed` bus event, and the sole
-  append is the `plan/mode` fallback when the plan-mode service is absent.
+  output and the guard's corrective denial. The judge's own model call carries a
+  producer-owned source kind (`dsh-autotier`, declared by module augmentation in
+  `src/judge.ts`); there is no shared `kind: 'plugin'` catch-all, and the session
+  format's row admission rejects that retired wrapper. No custom session event is
+  appended (that vocabulary is fail-closed on `0.1.2-alpha.1` and later); the
+  trail is the plugin logger plus the live `autotier/tier-changed` bus event, and
+  the sole append is the `plan/mode` fallback when the plan-mode service is
+  absent.
 - **Registration is an effect**: every listener, command, tool, service and
-  settings namespace rides the plugin fiber and disappears on dispose.
+  page-policy claim rides the plugin fiber and disappears on dispose. (There is
+  no settings namespace to release any more: the Host owns the form.)
 
 ## Config
 
@@ -95,8 +122,10 @@ with the shell's platform modules (`react`, `react/jsx-runtime`, the
 pnpm run verify:self-contained && pnpm run verify:artifacts && pnpm pack`. The
 plain `typecheck` resolves the local harness checkout's type faces through
 tsconfig `paths` (four levels up to `D:\deepseek-harness`); `typecheck:ci`
-resolves the npm-published `0.1.5-rc.2` faces (no paths) and is what CI runs —
-keep both green.
+resolves the npm-published `0.1.7-alpha.1` faces (no paths) and is what CI runs —
+keep both green. Both rulers must be on the SAME host line: this plugin's
+settings seam exists only from `0.1.6-alpha.2` on, so a green checkout ruler with
+a stale published pin would prove nothing.
 
 ## Release
 

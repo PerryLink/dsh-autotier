@@ -30,13 +30,27 @@ strong con un TTL de retorno.
 
 | Harness | Estado |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible; el flujo compat instala esta línea de extremo a extremo |
-| `@deepseek-ai/dsh` `0.1.5-rc.2` | compatible; verificada de extremo a extremo (perfil real, fila en `--dump-config`, smoke keyless) y en la matriz compat |
-| `@deepseek-ai/dsh` `0.1.6-alpha.2` | compatible; verificado en un host alpha.2 real (verificación de catálogo al montar, fila en `--dump-config`) y en la matriz compat |
-| `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | ya no compatible; esa línea es anterior al contrato `SettingsForms` al que apunta ahora el plugin |
+| `@deepseek-ai/dsh` `0.1.5-rc.2` | ya no compatible; el contrato `settings.register` / `settings/updated` que expone fue eliminado aguas arriba |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | ya no compatible; la misma eliminación, primera línea con `SettingsForms` |
+| `@deepseek-ai/dsh` `0.1.7-alpha.1` | **requerida**; verificada contra el checkout correspondiente (`typecheck`) y los paquetes publicados (`typecheck:ci`, 214 pruebas) |
+| `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | base de peers |
 
-Los rangos de peers nombran todas las líneas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), porque un rango cuyo único comparador de prerelease
+Los rangos de peers nombran las cuatro líneas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque un rango cuyo único comparador de prerelease
 está en una tupla anterior no admite un alpha posterior. Se refrescan por ola.
+El rango declarado es deliberadamente más amplio que el verificado: documenta lo
+que acepta el manifiesto, no lo que se ha probado.
+
+**Esta versión es una adaptación rompiente.** El host de la generación `0.1.6`
+eliminó la costura de *provider* de settings sobre la que se construyó este
+plugin: el paquete `@deepseek-ai/dsh-settings-file` ya no existe,
+`ctx.settings` es ahora `SettingsForms` (un proyector schema→formulario, sin
+`register`), y `settings/updated` tampoco existe. Ninguna superficie compartida
+permite que un plugin observe el documento de ajustes de otro, así que ninguna
+versión de este plugin puede soportar ambos contratos a la vez. La configuración
+fluye ahora por el mecanismo de configuración volátil del host; el **modo de
+enrutado por sesión** —el ajuste que realmente cambia el comportamiento en
+tiempo de ejecución— no cambia.
 
 El plugin vive solo en el plano host y no necesita un preset propio: la fila host
 se aplica a todas las sesiones. Una sección de prompt en *tu* preset es opcional
@@ -163,9 +177,19 @@ repositorio documenta las mismas claves en línea.
 | `escalation.signature` | `true` | Contar recurrencias de la misma firma en vez de cada fallo. |
 | `routingMode` | `auto` | `auto` \| `strong` \| `cheap` \| `delegated` \| `off`. |
 
-Todas las claves se pueden editar en caliente desde el namespace de settings
-`autotier` (`$DSH_HOME/settings.yaml`); una escritura que viole un requisito
-cruzado se rechaza al guardar y la última política válida sigue vigente.
+Todas las claves también se pueden editar en caliente desde la tarjeta del
+plugin en la página Plugins: el Host valida el valor nuevo contra el schema y lo
+confirma con `loader/volatile-update`, y este plugin vuelve a juzgar toda la
+configuración con el mismo juez de campos cruzados que usa al montar. Un valor
+que viole un requisito cruzado (dos tiers aterrizando en la misma ruta, un par de
+histéresis que no frena el parpadeo, una regla sin pattern ni tool) deja la
+última política válida enrutando en lugar de instalar algo inenrutable.
+
+`routingMode` es la única clave que **no** es en caliente: es el valor por
+defecto de la composición, y el interruptor en tiempo de ejecución es la
+anulación por sesión que escriben `/tier`, la píldora del compositor y el
+selector de la tarjeta. Hacerla en caliente también daría a un mismo
+comportamiento dos dueños.
 
 ## Herramientas y superficies
 
@@ -180,8 +204,10 @@ cruzado se rechaza al guardar y la última política válida sigue vigente.
 
 ## Permisos y datos
 
-- **Ficheros** — el plugin no lee ni escribe nada salvo a través del servicio
-  compartido de settings (el namespace `autotier`).
+- **Ficheros** — el plugin no lee ningún fichero ni escribe ninguno. La
+  configuración es del Host: un valor guardado en la página Plugins lo persiste
+  el Host en el parche del perfil activo, y este plugin solo lee la instantánea
+  viva que se le entrega.
 - **Red** — el único tráfico saliente es la llamada al juez, que pasa por la ruta
   normal de `ctx.llm` y el provider configurado.
 - **Registro de sesión** — el plugin no añade eventos de sesión propios. El rastro
@@ -232,7 +258,7 @@ cruzado se rechaza al guardar y la última política válida sigue vigente.
 ```bash
 pnpm install
 pnpm run typecheck      # contra las caras de tipo del checkout local del harness
-pnpm run typecheck:ci   # contra las caras publicadas 0.1.5-rc.2 (lo que ejecuta CI)
+pnpm run typecheck:ci   # contra las caras publicadas 0.1.7-alpha.1 (lo que ejecuta CI)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

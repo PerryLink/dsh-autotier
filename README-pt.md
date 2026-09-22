@@ -29,13 +29,27 @@ retorno.
 
 | Harness | Estado |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | compatível; o fluxo compat instala esta linha ponta a ponta |
-| `@deepseek-ai/dsh` `0.1.5-rc.2` | compatível; verificada ponta a ponta (perfil real, linha no `--dump-config`, smoke keyless) e na matriz compat |
-| `@deepseek-ai/dsh` `0.1.6-alpha.2` | compatível; verificado em um host alpha.2 real (verificação de catálogo na montagem, linha no `--dump-config`) e na matriz compat |
-| `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | base de peers |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | não é mais suportada; essa linha é anterior ao contrato `SettingsForms` que o plugin agora mira |
+| `@deepseek-ai/dsh` `0.1.5-rc.2` | não é mais suportada; o contrato `settings.register` / `settings/updated` que ela expõe foi removido a montante |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | não é mais suportada; a mesma remoção, primeira linha com `SettingsForms` |
+| `@deepseek-ai/dsh` `0.1.7-alpha.1` | **obrigatória**; verificada contra o checkout correspondente (`typecheck`) e os pacotes publicados (`typecheck:ci`, 214 testes) |
+| `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | base de peers |
 
-Os ranges de peers nomeiam todas as linhas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), porque um range cujo único comparador de prerelease
+Os ranges de peers nomeiam as quatro linhas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque um range cujo único comparador de prerelease
 está numa tupla anterior não admite um alpha posterior. São atualizados por onda.
+O range declarado é deliberadamente mais amplo que o verificado: documenta o que o
+manifesto aceita, não o que foi testado.
+
+**Esta versão é uma adaptação que quebra compatibilidade.** O host da geração
+`0.1.6` removeu a costura de *provider* de settings sobre a qual este plugin foi
+construído: o pacote `@deepseek-ai/dsh-settings-file` não existe mais,
+`ctx.settings` agora é `SettingsForms` (um projetor schema→formulário, sem
+`register`), e `settings/updated` também não existe. Nenhuma superfície
+compartilhada permite que um plugin observe o documento de configurações de
+outro, então nenhuma versão deste plugin pode suportar os dois contratos ao mesmo
+tempo. A configuração agora flui pelo mecanismo de configuração volátil do host;
+o **modo de roteamento por sessão** — a configuração que de fato muda o
+comportamento em tempo de execução — não muda.
 
 O plugin vive apenas no plano host e não precisa de preset próprio: a linha host
 vale para todas as sessões. Uma seção de prompt no *seu* preset é opcional e
@@ -111,9 +125,10 @@ modelo saiba em qual nível está, acrescente uma linha ao *seu* preset
 dsh plugin --profile web remove dsh-autotier
 ```
 
-A linha, seu namespace de settings, seu comando, suas ferramentas e seus
-listeners são removidos com o plugin; nada é escrito fora do documento de
-settings.
+A linha, seu comando, suas ferramentas e seus listeners são removidos com o
+plugin. A configuração que um usuário salvou pela página Plugins vive no patch do
+perfil ativo e pertence àquele perfil, não a este plugin; remover a linha a deixa
+ali intacta.
 
 ## Configuração
 
@@ -162,9 +177,18 @@ documenta as mesmas chaves em linha.
 | `escalation.signature` | `true` | Contar recorrências da mesma assinatura em vez de cada falha. |
 | `routingMode` | `auto` | `auto` \| `strong` \| `cheap` \| `delegated` \| `off`. |
 
-Todas as chaves também podem ser editadas a quente pelo namespace de settings
-`autotier` (`$DSH_HOME/settings.yaml`); uma escrita que viole um requisito
-cruzado é recusada ao salvar e a última política válida continua em vigor.
+Todas as chaves também podem ser editadas a quente pelo cartão do plugin na
+página Plugins: o Host valida o valor novo contra o schema e o confirma com
+`loader/volatile-update`, e este plugin então rejulga a configuração inteira com
+o mesmo juiz de campos cruzados que usa na montagem. Um valor que viole um
+requisito cruzado (dois tiers caindo na mesma rota, um par de histerese que não
+freia o piscar, uma regra sem pattern nem tool) deixa a última política válida
+roteando em vez de instalar algo inroteável.
+
+`routingMode` é a única chave que **não** é a quente: é o padrão da composição, e
+o interruptor em tempo de execução é a sobreposição por sessão escrita por
+`/tier`, pela pílula do compositor e pelo seletor do cartão. Torná-la a quente
+também daria a um mesmo comportamento dois donos.
 
 ## Ferramentas e superfícies
 
@@ -179,8 +203,9 @@ cruzado é recusada ao salvar e a última política válida continua em vigor.
 
 ## Permissões e dados
 
-- **Arquivos** — o plugin não lê nem escreve nada além do serviço compartilhado
-  de settings (o namespace `autotier`).
+- **Arquivos** — o plugin não lê nenhum arquivo nem escreve nenhum. A
+  configuração é do Host: um valor salvo na página Plugins é persistido pelo Host
+  no patch do perfil ativo, e este plugin apenas lê o snapshot vivo que recebe.
 - **Rede** — o único tráfego de saída é a chamada ao juiz, que passa pelo caminho
   normal de `ctx.llm` e pelo provider configurado.
 - **Log de sessão** — o plugin não anexa eventos de sessão próprios. O rastro de
@@ -231,7 +256,7 @@ cruzado é recusada ao salvar e a última política válida continua em vigor.
 ```bash
 pnpm install
 pnpm run typecheck      # contra as faces de tipo do checkout local do harness
-pnpm run typecheck:ci   # contra as faces publicadas 0.1.5-rc.2 (o que a CI executa)
+pnpm run typecheck:ci   # contra as faces publicadas 0.1.7-alpha.1 (o que a CI executa)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

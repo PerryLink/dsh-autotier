@@ -29,14 +29,27 @@ escalate to the strong tier with a TTL fallback.
 
 | Harness | Status |
 |---|---|
-| `@deepseek-ai/dsh` `0.1.2-rc.1` | compatible; the compat workflow installs this line end-to-end |
-| `@deepseek-ai/dsh` `0.1.5-rc.2` | compatible; verified end-to-end (real profile install, `--dump-config` row, keyless headless smoke) and in the compat matrix |
-| `@deepseek-ai/dsh` `0.1.6-alpha.2` | compatible; verified on a live alpha.2 host (mount-time catalogue check, `--dump-config` row) and in the compat matrix |
-| `@deepseek-ai/cordis` `^4.0.2`, `@deepseek-ai/schemastery` `^3.18.2` | peer baseline |
+| `@deepseek-ai/dsh` `0.1.2-rc.1` | no longer supported; that line predates the `SettingsForms` contract this plugin now targets |
+| `@deepseek-ai/dsh` `0.1.5-rc.2` | no longer supported; the `settings.register` / `settings/updated` contract it exposes was removed upstream |
+| `@deepseek-ai/dsh` `0.1.6-alpha.2` | no longer supported; same removal, first line to ship `SettingsForms` |
+| `@deepseek-ai/dsh` `0.1.7-alpha.1` | **required**; verified against the matching checkout (`typecheck`) and the published packages (`typecheck:ci`, 214 tests) |
+| `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer baseline |
 
-Peer ranges name all published lines explicitly (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0`), because a semver range whose only prerelease
+Peer ranges name all published lines explicitly (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), because a semver range whose only prerelease
 comparator sits on an earlier version tuple does not admit a later alpha.
-They are refreshed per published wave.
+They are refreshed per published wave. The declared range is deliberately wider
+than the verified one: it documents what the manifest accepts, not what has been
+tested.
+
+**This release is a breaking adaptation.** The `0.1.6`-generation harness
+removed the settings *provider* seam this plugin was built on: the
+`@deepseek-ai/dsh-settings-file` package is gone, `ctx.settings` is now
+`SettingsForms` (a schema→form projector, with no `register`), and
+`settings/updated` no longer exists. There is no shared surface that lets one
+plugin observe another plugin's settings document, so no version of this plugin
+can support both contracts at once. Configuration now flows through the host's
+volatile-config mechanism, and the per-session routing mode — the setting that
+actually changes behaviour at runtime — is unchanged.
 
 The plugin is host-plane only. It needs no agent preset of its own: the host
 row applies to every session. A one-line prompt section in *your* preset is
@@ -114,8 +127,10 @@ model know which tier it is running on, add one row to *your* agent preset
 dsh plugin --profile web remove dsh-autotier
 ```
 
-The row, its settings namespace, its command, its tools and its listeners are
-all removed with the plugin; nothing is written outside the settings document.
+The row, its command, its tools and its listeners are all removed with the
+plugin. Configuration a user saved through the Plugins page lives in the active
+profile patch and belongs to that profile, not to this plugin; removing the row
+leaves it there untouched.
 
 ## Configuration
 
@@ -164,9 +179,18 @@ same keys inline.
 | `escalation.signature` | `true` | Count same-signature recurrences instead of every failure. |
 | `routingMode` | `auto` | `auto` \| `strong` \| `cheap` \| `delegated` \| `off`. |
 
-All keys can also be edited live from the `autotier` settings namespace
-(`$DSH_HOME/settings.yaml`); a write that violates a cross-field requirement is
-refused at save time and the last good policy stays in effect.
+All keys can also be edited live from the plugin's card on the Plugins page; the
+Host validates the new value against the schema and commits it with
+`loader/volatile-update`, and this plugin then re-judges the whole configuration
+through the same cross-field judge the mount path uses. A value that violates a
+cross-field requirement (two tiers landing on the same route, a hysteresis pair
+that cannot stop flapping, a rule with neither a pattern nor a tool) leaves the
+last good policy routing instead of swapping in something unroutable.
+
+`routingMode` is the one key that is **not** live: it is the composition
+default, and the runtime switch is the session-scoped override written by
+`/tier`, the composer pill and the card's selector. Making it live as well would
+give the same behaviour two owners.
 
 ## Tools & surfaces
 
@@ -181,8 +205,10 @@ refused at save time and the last good policy stays in effect.
 
 ## Permissions & data
 
-- **Files** — the plugin reads nothing and writes nothing except through the
-  shared settings service (the `autotier` namespace).
+- **Files** — the plugin reads no file and writes none. Configuration is the
+  host's: a value saved on the Plugins page is persisted by the Host into the
+  active profile patch, and this plugin only reads the live snapshot it is
+  handed.
 - **Network** — the only outbound traffic is the judge call, which goes through
   the normal `ctx.llm` path and the configured provider.
 - **Session log** — the plugin appends no custom session events. The routing
@@ -235,7 +261,7 @@ refused at save time and the last good policy stays in effect.
 ```bash
 pnpm install
 pnpm run typecheck      # against the local harness checkout type faces
-pnpm run typecheck:ci   # against the published 0.1.5-rc.2 faces (what CI runs)
+pnpm run typecheck:ci   # against the published 0.1.7-alpha.1 faces (what CI runs)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained
@@ -245,8 +271,12 @@ pnpm pack
 
 `pnpm run build` emits `lib/types` (tsc declarations) and `lib/index.js`
 (tsdown bundle). Tests use the published host packages directly — real
-`Context`, real session/tools/commands/settings services — plus one real Loader
-composition over a temporary `cordis.yml`.
+`Context`, real session/tools/commands services — plus one real Loader
+composition over a temporary `cordis.yml`. The `settings` service is the one
+stand-in: the host's real `SettingsForms` binds to `configEditor`,
+`profileContext` and the Loader's fiber graph, none of which this plugin
+consumes, while the plugin's whole contract with it is `configure({ auto })`
+plus the Loader's `loader/volatile-update` event.
 
 ## Topics
 
