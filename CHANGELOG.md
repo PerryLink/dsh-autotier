@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-22
+
 ### Changed
 
 - **Adapted to the `0.1.7-alpha.1` host. This is a breaking adaptation: the older lines are dropped.** The `0.1.6`-generation harness replaced the settings *provider* seam with `SettingsForms`, so `ctx.settings.register(ns, schema, { base, validate })` and the `settings/updated` event no longer exist on any published line that ships the new service. Configuration is now read from the row's own volatile references: each top-level `Config` section is declared `.volatile()`, the plugin claims its Plugins-page policy with `ctx.settings.configure({ auto: false })`, and a live edit re-resolves the routing policy on `loader/volatile-update`. `.volatile()` cannot sit inside an array, dict or union, so it is applied per top-level section rather than per nested field. `routingMode` stays plain on purpose: it is the composition default, and the runtime switch remains the per-session override written by `/tier`, the composer pill and the card. Cross-field validation is unchanged in kind but moved owner: `.check()` does not exist in the pinned Schemastery, so `resolveConfig` — still the single judge at mount — now also runs on every live update and keeps the last good policy when it refuses a value.
