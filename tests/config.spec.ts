@@ -14,27 +14,30 @@ import { Config, resolveConfig, validateConfig } from '../src/index.ts'
 describe('Config schema', () => {
   it('resolves the documented defaults for a bare row', () => {
     const resolved = Config({})
-    expect(resolved.tiers?.strong).toEqual({
+    // Every top-level section is volatile, so a resolved row is read through
+    // `.get()` — the same surface a running plugin sees.
+    const tiers = resolved.tiers.get()
+    expect(tiers?.strong).toEqual({
       provider: 'deepseek-official',
       model: 'deepseek-v4-pro',
       effort: 'high',
       followSession: false,
       fallback: [],
     })
-    expect(resolved.tiers?.cheap).toEqual({
+    expect(tiers?.cheap).toEqual({
       provider: 'deepseek-official',
       model: 'deepseek-flash',
       effort: 'low',
       followSession: true,
       fallback: [],
     })
-    expect(resolved.tiers?.vision).toEqual({
+    expect(tiers?.vision).toEqual({
       provider: 'deepseek-official',
       model: 'deepseek-flash',
     })
     expect(resolved.routingMode).toBe('auto')
-    expect(resolved.guard?.tiers).toEqual(['cheap'])
-    expect(resolved.escalation).toEqual({
+    expect(resolved.guard.get()?.tiers).toEqual(['cheap'])
+    expect(resolved.escalation.get()).toEqual({
       threshold: 2,
       windowMs: 60_000,
       ttlMs: 180_000,
@@ -44,7 +47,7 @@ describe('Config schema', () => {
   })
 
   it('accepts only the adapter-owned effort vocabulary', () => {
-    expect(Config({ tiers: { strong: { effort: 'max' } } }).tiers?.strong?.effort).toBe('max')
+    expect(Config({ tiers: { strong: { effort: 'max' } } }).tiers.get()?.strong?.effort).toBe('max')
     // The casts are deliberate: these literals are rejected by the TYPE, and the
     // test asserts that the RUNTIME schema rejects them too (a cordis.yml is
     // untyped, so only the runtime guard protects a user).
@@ -59,6 +62,17 @@ describe('Config schema', () => {
 
   it('rejects an unknown routing mode', () => {
     expect(() => Config({ routingMode: 'auto-magic' } as never)).toThrow()
+  })
+
+  it('exposes every section except routingMode as a live reference', () => {
+    const resolved = Config({})
+    // The volatile set is the settings-form surface: a section a form may edit
+    // live must be a reference, and `routingMode` must stay plain because the
+    // per-session override is the authoritative switch.
+    for (const section of [resolved.tiers, resolved.intent, resolved.guard, resolved.escalation]) {
+      expect(typeof section.get).toBe('function')
+    }
+    expect(typeof resolved.routingMode).toBe('string')
   })
 })
 

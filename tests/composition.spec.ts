@@ -2,8 +2,14 @@
  * Real Loader composition + built-artifact suite (community five-layer model,
  * layer 4). An independent process mounts the vendored Loader over a cordis.yml
  * with the real host service rows (session, system prompt, tools, commands,
- * llm, file-backed settings) plus the plugin row, proving module unwrapping,
- * inject resolution, and config schema application against the BUILT artifact.
+ * llm, settings) plus the plugin row, proving module unwrapping, inject
+ * resolution, and config schema application against the BUILT artifact.
+ *
+ * The settings row is provided by the runner rather than composed from a
+ * package: the host's settings service is `SettingsForms`, which projects
+ * Config schemas into Plugins-page forms and itself injects `configEditor` and
+ * `profileContext` from the launcher.
+ *
  * @module dsh-autotier/tests/composition.spec
  */
 
@@ -21,20 +27,22 @@ const temporaryRoot = mkdtempSync(join(tmpdir(), 'dsh-autotier-loader-'))
 
 /**
  * One cordis.yml: the real host service rows, then the plugin row with config.
+ *
+ * The plugin keeps `settings` as a hard inject, and the real `SettingsForms`
+ * service itself injects `configEditor` and `profileContext`, which the Loader
+ * runner does not compose. The row is therefore named for what the composition
+ * must prove — the plugin resolving its injects and applying its row config —
+ * and the runner provides the settings service directly.
+ *
  * @param configLines - plugin config lines, already indented by the caller.
- * @param settingsPath - settings document path for the file provider.
  */
-function configFor(configLines: string[] = [], settingsPath = join(temporaryRoot, 'settings.yaml')): string {
+function configFor(configLines: string[] = []): string {
   return [
     "- name: '@deepseek-ai/dsh-session'",
     "- name: '@deepseek-ai/dsh-system-prompt'",
     "- name: '@deepseek-ai/dsh-tools'",
     "- name: '@deepseek-ai/dsh-commands'",
     "- name: '@deepseek-ai/dsh-llm'",
-    "- name: '@deepseek-ai/dsh-settings-file'",
-    '  config:',
-    `    path: ${JSON.stringify(settingsPath)}`,
-    '    watch: false',
     `- name: ${JSON.stringify(pathToFileURL(builtEntry).href)}`,
     ...(configLines.length > 0 ? ['  config:', ...configLines.map(line => `    ${line}`)] : []),
     '',

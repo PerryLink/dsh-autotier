@@ -11,23 +11,11 @@ import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
-import SettingsProvider from '@deepseek-ai/dsh-settings'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
 import { describe, expect, it } from 'vitest'
 import * as plugin from '../src/index.ts'
-
-/** Minimal in-memory settings provider. */
-class ToolSettings extends SettingsProvider {
-  readonly writable = true
-  private readonly doc: Record<string, unknown> = {}
-  protected async load(): Promise<Record<string, unknown>> {
-    return this.doc
-  }
-  protected async persist(ns: string, section: Record<string, unknown>): Promise<void> {
-    this.doc[ns] = section
-  }
-}
+import { MemorySettings } from './harness.ts'
 
 /** Mount the plugin over the real tool runtime and create one agent. */
 async function mount() {
@@ -36,7 +24,7 @@ async function mount() {
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
   await ctx.plugin(CommandRuntime)
-  await ctx.plugin(ToolSettings)
+  await ctx.plugin(MemorySettings)
   ctx.provide('llm', {} as never)
   const fiber = await ctx.plugin(plugin as unknown as import('@deepseek-ai/cordis').Plugin, {})
   const session = ctx.sessions.create(SessionId(`tools-${String(Math.random()).slice(2, 8)}`))

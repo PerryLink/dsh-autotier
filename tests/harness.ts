@@ -1,50 +1,58 @@
 /**
  * Shared test harness: a REAL cordis `Context` composed from the published
- * `0.1.2-rc.1` host packages — the session store, the tool runtime, the command
- * runtime, and an in-memory settings provider — plus this plugin. No hand-written
- * service stand-ins are used for the capabilities the plugin injects; the only
- * fake is the settings provider's storage (the abstract `load`/`persist` pair),
- * which is exactly the seam the host expects a provider to implement.
+ * `0.1.7-alpha.1` host packages — the session store, the tool runtime, the
+ * command runtime, and a stand-in for the `settings` service — plus this
+ * plugin.
+ *
+ * The `settings` stand-in is the one fake. The host's real service is
+ * `SettingsForms`, which binds to `configEditor`, `profileContext` and the
+ * Loader's own fiber graph; none of that is what this plugin consumes. The
+ * plugin's whole contract with the service is `configure({ auto })` (claim the
+ * Plugins-page policy) plus the Loader's `loader/volatile-update` event, so the
+ * stand-in reproduces exactly those two and nothing else.
+ *
  * @module dsh-autotier/tests/harness
  */
 
-import { Context } from '@deepseek-ai/cordis'
-import type { Fiber } from '@deepseek-ai/cordis'
+import { Context, Service } from '@deepseek-ai/cordis'
+import type { Fiber, Plugin } from '@deepseek-ai/cordis'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import SessionStore from '@deepseek-ai/dsh-session'
-import type { SettingsNamespace, SettingsScope } from '@deepseek-ai/dsh-settings'
-import SettingsProvider from '@deepseek-ai/dsh-settings'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
-import type z from '@deepseek-ai/schemastery'
 import * as autotier from '../src/index.ts'
-import type { AutotierConfig } from '../src/index.ts'
+import type { AutotierConfig, VolatileConfig } from '../src/index.ts'
+
+/** One recorded `configure` call. */
+export interface PagePolicyCall {
+  readonly auto: boolean | undefined
+  readonly owner: unknown
+}
 
 /**
- * In-memory settings provider. It records every registered namespace scope so a
- * test can drive the user layer of the plugin's own `autotier` namespace.
+ * Stand-in for the `settings` service. It is a real cordis `Service` named
+ * `settings`, so `ctx.get('settings')` and fiber-scoped disposal behave exactly
+ * as they do against the host.
  */
-export class MemorySettings extends SettingsProvider {
-  readonly writable = true
-  /** Every namespace scope registered, keyed by namespace. */
-  readonly scopes = new Map<string, SettingsScope<unknown>>()
-  private readonly doc: Record<string, unknown> = {}
-  protected async load(): Promise<Record<string, unknown>> {
-    return this.doc
+export class MemorySettings extends Service {
+  /** Every page policy this plugin claimed, in order. */
+  readonly policies: PagePolicyCall[] = []
+  /** How many disposers the plugin registered for its policy claims. */
+  disposals = 0
+
+  constructor(ctx: Context) {
+    super(ctx, 'settings')
   }
-  protected async persist(ns: SettingsNamespace, section: Record<string, unknown>): Promise<void> {
-    this.doc[ns] = section
-  }
-  // The alpha.2 register signature is generically constrained on a non-exported
-  // namespace input; the recorder widens the parameter on purpose.
-  override register<T>(ns: any, schema: z<T>, options?: Parameters<SettingsProvider['register']>[2]): SettingsScope<T> {
-    const scope = super.register(ns, schema, options)
-    this.scopes.set(String(ns), scope as unknown as SettingsScope<unknown>)
-    return scope
-  }
-  /** The scope registered for one namespace. */
-  scope<T>(ns: string): SettingsScope<T> | undefined {
-    return this.scopes.get(ns) as SettingsScope<T> | undefined
+
+  /**
+   * Record one page-policy claim.
+   * @param presentation - the requested policy.
+   * @param owner - the owning fiber.
+   * @returns the disposer the caller must register as an effect.
+   */
+  configure(presentation: { auto?: boolean }, owner?: unknown): () => void {
+    this.policies.push({ auto: presentation.auto, owner })
+    return () => { this.disposals += 1 }
   }
 }
 
@@ -54,11 +62,25 @@ export interface AutotierHarness {
   /** The plugin's own fiber; disposing it simulates a config hot-reload. */
   pluginFiber: Fiber
   settings: MemorySettings
+  /**
+   * The row's parsed volatile references. A test drives a hot edit by copying a
+   * new snapshot into one of these with `updateVolatile` and then emitting
+   * `loader/volatile-update`, exactly as the Loader commits a form write.
+   */
+  liveConfig: VolatileConfig
   dispose(): Promise<void>
 }
 
 /**
  * Compose the real host seam plus this plugin over a fresh context.
+ *
+ * The row config is handed over as PLAIN data. cordis validates it through the
+ * plugin's own exported `Config` schema as the fiber starts — the same step the
+ * Loader performs — and that is what produces the live `Volatile` references
+ * exposed as {@link AutotierHarness.liveConfig}. Parsing here instead would
+ * double-validate an already-parsed row, which Schemastery rejects (its volatile
+ * branch re-wraps its input rather than adopting an existing reference).
+ *
  * @param config - plugin configuration; omitted fields take schema defaults.
  * @returns the live harness.
  */
@@ -73,11 +95,12 @@ export async function createHarness(config: AutotierConfig = {}): Promise<Autoti
   // `llm` is injected as a hard dependency; the routing suite replaces this
   // stand-in with a real LlmService plus a mock adapter when it needs requests.
   ctx.provide('llm', {} as never)
-  const pluginFiber = await ctx.plugin(autotier as unknown as import('@deepseek-ai/cordis').Plugin, config)
+  const pluginFiber = await ctx.plugin(autotier as unknown as Plugin, config)
   return {
     ctx,
     pluginFiber,
     settings,
+    liveConfig: pluginFiber.config as VolatileConfig,
     async dispose(): Promise<void> {
       await ctx.fiber.dispose()
     },

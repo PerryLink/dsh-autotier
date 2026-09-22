@@ -140,9 +140,12 @@ describe('tier invocation descriptors', () => {
     expect(parameter?.name).toBe('agentId')
     expect(parameter?.wire).toBe('agentId')
     expect(parameter?.acceptsUndefined).toBe(true)
-    expect(() => parameter?.codec.schema.parse(undefined)).not.toThrow()
-    expect(parameter?.codec.schema.parse('session-1')).toBe('session-1')
-    expect(() => parameter?.codec.schema.parse(7)).toThrow()
+    // `create()` is the codec's only schema entry point; the typert-loader
+    // refuses a strict codec without it.
+    const schema = parameter!.codec.create()
+    expect(() => schema.parse(undefined)).not.toThrow()
+    expect(schema.parse('session-1')).toBe('session-1')
+    expect(() => schema.parse(7)).toThrow()
   })
 
   it('keeps tier/catalog parameterless', () => {
@@ -155,10 +158,29 @@ describe('tier invocation descriptors', () => {
     const agentId = TIER_SET_MODE_DESCRIPTOR.parameters[1]
     expect(mode?.name).toBe('mode')
     expect(mode !== undefined && 'acceptsUndefined' in mode && mode.acceptsUndefined === true).toBe(false)
-    for (const candidate of ROUTING_MODES) expect(() => mode?.codec.schema.parse(candidate)).not.toThrow()
-    expect(() => mode?.codec.schema.parse('turbo')).toThrow()
+    const modeSchema = mode!.codec.create()
+    for (const candidate of ROUTING_MODES) expect(() => modeSchema.parse(candidate)).not.toThrow()
+    expect(() => modeSchema.parse('turbo')).toThrow()
     expect(agentId?.name).toBe('agentId')
     expect(agentId !== undefined && 'acceptsUndefined' in agentId && agentId.acceptsUndefined).toBe(true)
+  })
+
+  it('offers no second schema face on a strict codec', () => {
+    // The dual-face `schema` property was dead weight: the protocol declares
+    // only `create()`, and the loader validates exactly that.
+    const codecs = [
+      TIER_STATUS_DESCRIPTOR.result,
+      TIER_CATALOG_DESCRIPTOR.result,
+      TIER_SET_MODE_DESCRIPTOR.result,
+      ...TIER_STATUS_DESCRIPTOR.parameters.map(parameter => parameter.codec),
+      ...TIER_SET_MODE_DESCRIPTOR.parameters.map(parameter => parameter.codec),
+    ]
+    expect(codecs.length).toBeGreaterThan(0)
+    for (const codec of codecs) {
+      expect('schema' in codec).toBe(false)
+      expect(typeof codec.create).toBe('function')
+      expect(typeof codec.create().parse).toBe('function')
+    }
   })
 })
 

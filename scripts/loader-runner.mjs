@@ -41,6 +41,17 @@ try {
     },
   })
   ctx.loader.builtins.include = Include
+  // `settings` is a hard inject of the plugin. The host's real service is
+  // `SettingsForms`, which itself injects `configEditor` and `profileContext`
+  // (services the launcher composes, not the Loader). This runner is about the
+  // Loader resolving the plugin's injects and applying its row config, so the
+  // settings service is provided directly. Its only method the plugin calls is
+  // `configure` (claim the Plugins-page policy).
+  ctx.provide('settings', {
+    configure() {
+      return () => {}
+    },
+  })
   await ctx.loader.create({
     name: 'cordis:include',
     config: { path: pathToFileURL(configPath).href },

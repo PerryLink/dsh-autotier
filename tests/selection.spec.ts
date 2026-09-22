@@ -18,9 +18,24 @@ import { AgentStateStore } from '../src/state.ts'
 class FakeDefaultModel {
   readonly writes: { provider: string; model: string; reasoningEffort?: string }[] = []
   fail = false
+  /**
+   * The documented selection, mutated by an external actor (the GUI's model
+   * picker) the way the real service mutates its own volatile config.
+   */
+  documented: { provider: string; model: string; reasoningEffort?: string } = {
+    provider: 'deepseek-official',
+    model: 'deepseek-v4-pro',
+    reasoningEffort: 'high',
+  }
+
+  currentSelection(): { provider: string; model: string; reasoningEffort?: string } {
+    return this.documented
+  }
+
   async saveSelection(next: { provider: string; model: string; reasoningEffort?: string }): Promise<void> {
     if (this.fail) throw new Error('settings write refused')
     this.writes.push(next)
+    this.documented = next
   }
 }
 
@@ -55,19 +70,19 @@ describe('SelectionSync', () => {
     }
   })
 
-  it('ignores its own write coming back as a settings event', async () => {
+  it('treats its own mirrored write as its own on the next landing', async () => {
     const harness = await mount()
     try {
       harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high' })
       await Promise.resolve()
-      harness.ctx.emit(
-        'settings/updated',
-        'agent-default-model' as never,
-        { provider: 'deepseek-official', model: 'deepseek-v4-pro', reasoningEffort: 'high' },
-        {},
-        'update',
-      )
+      // The document now holds exactly what we wrote, so re-reading it is not
+      // an external change and nothing is delegated.
+      harness.sync.observeExternalSelection()
       expect(harness.states.for(harness.agent).override).toBeUndefined()
+      // And the repeat landing is recognised as already mirrored.
+      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high' })
+      await Promise.resolve()
+      expect(harness.defaultModel.writes).toHaveLength(1)
     } finally {
       await harness.dispose()
     }
@@ -76,13 +91,13 @@ describe('SelectionSync', () => {
   it('delegates live sessions when the document changes externally', async () => {
     const harness = await mount()
     try {
-      harness.ctx.emit(
-        'settings/updated',
-        'agent-default-model' as never,
-        { provider: 'deepseek-official', model: 'deepseek-v4-pro' },
-        {},
-        'provider',
-      )
+      // Establish ownership of the document first: before this plugin writes,
+      // "not ours" is the composition default, not a user override.
+      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-flash', effort: 'low' })
+      await Promise.resolve()
+      // The user picks a different model in the GUI.
+      harness.defaultModel.documented = { provider: 'deepseek-official', model: 'deepseek-v4-pro', reasoningEffort: 'high' }
+      harness.sync.observeExternalSelection()
       expect(harness.states.for(harness.agent).override).toBe('delegated')
     } finally {
       await harness.dispose()
@@ -92,9 +107,38 @@ describe('SelectionSync', () => {
   it('never overrides a session that opted out with /tier off', async () => {
     const harness = await mount()
     try {
+      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-flash', effort: 'low' })
+      await Promise.resolve()
       harness.states.for(harness.agent).override = 'off'
-      harness.ctx.emit('settings/updated', 'agent-default-model' as never, { provider: 'x', model: 'y' }, {}, 'update')
+      harness.defaultModel.documented = { provider: 'x', model: 'y' }
+      harness.sync.observeExternalSelection()
       expect(harness.states.for(harness.agent).override).toBe('off')
+    } finally {
+      await harness.dispose()
+    }
+  })
+
+  it('does not mistake the composition default for a user override', async () => {
+    const harness = await mount()
+    try {
+      // Nothing has been mirrored yet, so the documented selection ("deepseek-v4-pro")
+      // is whatever the deployment started with — not an override of a routing
+      // decision this plugin made. Routing must not delegate on that alone.
+      harness.sync.observeExternalSelection()
+      expect(harness.states.for(harness.agent).override).toBeUndefined()
+    } finally {
+      await harness.dispose()
+    }
+  })
+
+  it('keeps routing when the external read throws', async () => {
+    const harness = await mount()
+    try {
+      harness.sync.noteRoute({ provider: 'deepseek-official', model: 'deepseek-flash', effort: 'low' })
+      await Promise.resolve()
+      harness.defaultModel.currentSelection = () => { throw new Error('document unreadable') }
+      expect(() => { harness.sync.observeExternalSelection() }).not.toThrow()
+      expect(harness.states.for(harness.agent).override).toBeUndefined()
     } finally {
       await harness.dispose()
     }

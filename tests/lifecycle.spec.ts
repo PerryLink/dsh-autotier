@@ -1,14 +1,15 @@
 /**
  * Fiber-disposal / HMR-safety + export-contract suite: mounting the plugin over
- * the REAL session, tools, commands and settings services, disposing its
- * contributing fiber, and re-querying the authoritative registries to prove the
- * `autotier` service and settings namespace disappear; plus the function-plugin
- * namespace contract (no default export, Loader unwrap round-trip) and the
- * save-time settings validation that refuses a cross-field-invalid write.
+ * the REAL session, tools and commands services plus the settings stand-in,
+ * disposing its contributing fiber, and re-querying the authoritative
+ * registries to prove the `autotier` service and every effect it owns disappear;
+ * plus the function-plugin namespace contract (no default export, Loader unwrap
+ * round-trip) and the live settings-update path.
  * @module dsh-autotier/tests/lifecycle.spec
  */
 
 import Loader from '@deepseek-ai/cordis-plugin-loader'
+import { createVolatile, updateVolatile } from '@deepseek-ai/cosmokit'
 import { describe, expect, it } from 'vitest'
 import * as plugin from '../src/index.ts'
 import { createHarness } from './harness.ts'
@@ -33,7 +34,7 @@ describe('function-plugin contract', () => {
 })
 
 describe('mount over the real host seam', () => {
-  it('publishes the autotier service and the settings namespace', async () => {
+  it('publishes the autotier service and claims the settings page policy', async () => {
     const harness = await createHarness()
     try {
       const service = harness.ctx.get('autotier')
@@ -45,13 +46,15 @@ describe('mount over the real host seam', () => {
       expect(status.tiers.cheap).toEqual({ provider: 'deepseek-official', model: 'deepseek-flash' })
       expect(status.tiers.vision.model).toBe('deepseek-flash')
       expect(status.guard).toEqual({ enabled: true, tiers: ['cheap'] })
-      expect(harness.settings.scope('autotier')).toBeDefined()
+      // `settings` is a hard inject, and the plugin must claim `auto: false` so
+      // the Plugins page renders its own card instead of a generated form.
+      expect(harness.settings.policies).toEqual([{ auto: false, owner: harness.pluginFiber }])
     } finally {
       await harness.dispose()
     }
   })
 
-  it('applies the row config as the settings base layer', async () => {
+  it('applies the row config as the composition layer', async () => {
     const harness = await createHarness({ routingMode: 'cheap', tiers: { strong: { effort: 'max' } } })
     try {
       const service = harness.ctx.get('autotier')
@@ -63,29 +66,37 @@ describe('mount over the real host seam', () => {
     }
   })
 
-  it('follows a committed settings write live', async () => {
+  it('follows a live configuration update through loader/volatile-update', async () => {
+    // The host commits a form edit by validating the new Config, copying each
+    // volatile snapshot into the row's existing reference, and emitting
+    // `loader/volatile-update`. `updateVolatile` is that copy; the harness has
+    // already parsed the row through the real schema, so the reference exists.
     const harness = await createHarness()
     try {
-      const scope = harness.settings.scope<{ routingMode?: string }>('autotier')
-      expect(scope).toBeDefined()
-      await scope!.update({ routingMode: 'strong' })
-      const service = harness.ctx.get('autotier')
-      expect(service).toBeDefined()
-      expect(service!.status().mode).toBe('strong')
+      expect(harness.ctx.get('autotier')!.status().tiers.strong.effort).toBe('high')
+      const live = harness.liveConfig
+      updateVolatile(live.tiers, createVolatile({ strong: { effort: 'max' } }))
+      harness.ctx.emit('loader/volatile-update', [])
+      expect(harness.ctx.get('autotier')!.status().tiers.strong.effort).toBe('max')
     } finally {
       await harness.dispose()
     }
   })
 
-  it('refuses a cross-field-invalid settings write at save time', async () => {
+  it('keeps the last good policy when a live update is cross-field-invalid', async () => {
     const harness = await createHarness()
     try {
-      const scope = harness.settings.scope<Record<string, unknown>>('autotier')
-      await expect(scope!.update({ escalation: { threshold: 0 } })).rejects.toThrow(/escalation\.threshold/u)
-      // The refused write leaves the last good policy in place.
-      const service = harness.ctx.get('autotier')
-      expect(service).toBeDefined()
-      expect(service!.status().escalation.threshold).toBe(2)
+      const service = harness.ctx.get('autotier')!
+      expect(service.status().escalation.threshold).toBe(2)
+      // A strong/cheap collision: the schema accepts each value in isolation,
+      // the cross-field judge does not.
+      updateVolatile(harness.liveConfig.tiers, createVolatile({
+        cheap: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high', followSession: false },
+      }))
+      harness.ctx.emit('loader/volatile-update', [])
+      // The refused update leaves the last good policy routing.
+      expect(service.status().tiers.cheap.model).toBe('deepseek-flash')
+      expect(service.status().escalation.threshold).toBe(2)
     } finally {
       await harness.dispose()
     }
@@ -115,8 +126,9 @@ describe('fiber disposal', () => {
   it('rejects a same-namespace remount while the first fiber is live', async () => {
     const harness = await createHarness()
     try {
+      // cordis 4.0.3 words the duplicate-service refusal as `has been registered`.
       await expect(harness.ctx.plugin(plugin as unknown as import('@deepseek-ai/cordis').Plugin, {}))
-        .rejects.toThrow(/already registered/u)
+        .rejects.toThrow(/has been registered/u)
     } finally {
       await harness.dispose()
     }

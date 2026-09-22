@@ -9,13 +9,13 @@ import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
-import SettingsProvider from '@deepseek-ai/dsh-settings'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
 import ToolRuntime, { defineTool } from '@deepseek-ai/dsh-tools'
 import { describe, expect, it } from 'vitest'
 import { resolveConfig } from '../src/config.ts'
 import { evaluateToolCall, redactSnippet } from '../src/guard.ts'
 import * as plugin from '../src/index.ts'
+import { MemorySettings } from './harness.ts'
 
 /** Judge one call with defaults. */
 function judge(
@@ -151,17 +151,8 @@ async function mountGuard(config: Parameters<typeof plugin.apply>[1] = {}) {
   }
 }
 
-/** Minimal in-memory settings provider for the guard harness. */
-class GuardSettings extends SettingsProvider {
-  readonly writable = true
-  private readonly doc: Record<string, unknown> = {}
-  protected async load(): Promise<Record<string, unknown>> {
-    return this.doc
-  }
-  protected async persist(ns: string, section: Record<string, unknown>): Promise<void> {
-    this.doc[ns] = section
-  }
-}
+/** Minimal settings service for the guard harness (see `harness.ts`). */
+class GuardSettings extends MemorySettings {}
 
 describe('tools/pre-execute waterfall', () => {
   it('denies a high-impact command before the tool body runs', async () => {
