@@ -40,6 +40,11 @@ jobs:
 
       - name: Publish to npm
         run: |
+          echo "ID_TOKEN_REQUEST_URL: ${ACTIONS_ID_TOKEN_REQUEST_URL:+present}"
+          echo "ID_TOKEN_REQUEST_TOKEN: ${ACTIONS_ID_TOKEN_REQUEST_TOKEN:+present}"
+          echo "npm=$(npm --version) node=$(node --version)"
+          echo "repository=$(node -p "require('./package.json').repository.url")"
+          echo "--- ~/.npmrc:"; cat ~/.npmrc 2>/dev/null || echo "(none)"
           version="$(node -p "require('./package.json').version")"
           if npm view "dsh-autotier@${version}" version >/dev/null 2>&1; then
             echo "dsh-autotier@${version} is already published; skipping npm publish"
