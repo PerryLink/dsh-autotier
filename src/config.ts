@@ -7,6 +7,7 @@
  * @module dsh-autotier/config
  */
 
+import { isVolatile, type Volatile } from '@deepseek-ai/cosmokit'
 import {
   COST_MODES,
   EFFORT_IDS,
@@ -26,6 +27,7 @@ import type {
   ScenarioToggles,
   TierConfig,
   VisionConfig,
+  VolatileConfig,
 } from './schema.ts'
 
 export { Config } from './schema.ts'
@@ -39,7 +41,51 @@ export type {
   ScenarioToggles,
   TierConfig,
   VisionConfig,
+  VolatileConfig,
 } from './schema.ts'
+
+/**
+ * Read one config field that may arrive as a live reference or as plain data.
+ * The Loader hands `apply` a `VolatileConfig` (every section is a reference);
+ * a programmatic mount, a test, or `scripts/` hands plain data. Both faces feed
+ * the same resolver, so neither can drift from the other.
+ *
+ * `Volatile.get()` answers a deeply-readonly snapshot. The resolvers below read
+ * these values and then produce their own frozen output, so the read-only view
+ * is exactly the contract wanted; the cast re-widens it to the mutable field
+ * type so those signatures do not have to carry `readonly` everywhere.
+ *
+ * @param value - the field as handed to the plugin.
+ * @returns the current snapshot value.
+ */
+function unwrap<T>(value: Volatile<T> | T): T | undefined {
+  return isVolatile(value) ? (value.get() as T | undefined) : value
+}
+
+/**
+ * Read the plain-data config out of either accepted face.
+ *
+ * `exactOptionalPropertyTypes` is on, so an absent section is omitted rather
+ * than set to `undefined`: the resolvers below treat "key absent" and "key
+ * undefined" alike, but only the omitted form is assignable to `Config`.
+ *
+ * @param raw - the plugin configuration as received.
+ * @returns the plain-data config every resolver below reads.
+ */
+function plain(raw: Config | VolatileConfig | undefined): Config {
+  if (raw === undefined) return {}
+  const tiers = unwrap(raw.tiers)
+  const intent = unwrap(raw.intent)
+  const guard = unwrap(raw.guard)
+  const escalation = unwrap(raw.escalation)
+  return {
+    ...tiers === undefined ? {} : { tiers },
+    ...intent === undefined ? {} : { intent },
+    ...guard === undefined ? {} : { guard },
+    ...escalation === undefined ? {} : { escalation },
+    ...raw.routingMode === undefined ? {} : { routingMode: raw.routingMode },
+  }
+}
 
 /** One resolved fallback landing. */
 export interface ResolvedFallbackEntry {
@@ -314,12 +360,23 @@ function effectiveLanding(tier: ResolvedTierConfig): string {
  * Resolve raw config to the frozen runtime policy, re-judging every default,
  * bound and cross-field requirement.
  *
- * @param raw - raw loader config; `undefined` for a bare row.
+ * The cross-field judgement is the whole reason this module exists, and it is
+ * NOT expressed in the Schemastery schema: the host validates a form write
+ * against the schema alone, so a violation this function catches (a strong and
+ * a cheap tier landing on the same route, `hysteresis.toCheap >= toStrong`, a
+ * rule with neither a pattern nor a tool) would otherwise persist and only fail
+ * later. Every actor that can change the configuration therefore routes through
+ * here — the Loader at mount, and `settings.ts` on each `loader/volatile-update`
+ * — and refuses the change instead of storing something unroutable.
+ *
+ * @param raw - raw loader config; `undefined` for a bare row. Accepts both the
+ *   Loader's `VolatileConfig` face and the plain-data `Config` face.
  * @returns the frozen resolved config.
  * @throws {Error} when a value is out of bounds or a cross-field requirement fails.
  */
-export function resolveConfig(raw: Config | undefined): ResolvedConfig {
-  const tiers = raw?.tiers ?? {}
+export function resolveConfig(raw: Config | VolatileConfig | undefined): ResolvedConfig {
+  const source = plain(raw)
+  const tiers = source.tiers ?? {}
   const strong = resolveTier('strong', tiers.strong, DEFAULT_STRONG)
   const cheap = resolveTier('cheap', tiers.cheap, DEFAULT_CHEAP)
   const strongTriple = effectiveLanding(strong)
@@ -336,23 +393,24 @@ export function resolveConfig(raw: Config | undefined): ResolvedConfig {
         model: text('tiers.vision.model', tiers.vision?.model, DEFAULT_VISION.model),
       },
     },
-    intent: resolveIntent(raw?.intent),
-    guard: resolveGuard(raw?.guard),
-    escalation: resolveEscalation(raw?.escalation),
-    routingMode: member('routingMode', raw?.routingMode, 'auto', ROUTING_MODES),
+    intent: resolveIntent(source.intent),
+    guard: resolveGuard(source.guard),
+    escalation: resolveEscalation(source.escalation),
+    routingMode: member('routingMode', source.routingMode, 'auto', ROUTING_MODES),
   }
   return deepFreeze(resolved)
 }
 
 /**
- * Judge a configuration without keeping the resolved value. This is the
- * save-time hook the `autotier` settings namespace registers, so a user write
- * that violates a cross-field requirement is refused at the write instead of
- * silently disabling the plugin.
+ * Judge a configuration without keeping the resolved value.
  *
  * @param value - the configuration to judge.
  * @throws {Error} when the configuration is invalid.
+ * @deprecated The host no longer offers a `settings.register` validate hook, so
+ *   this is no longer wired as a save-time gate. {@link resolveConfig} is the
+ *   single judge and is called directly at mount and on every live update; this
+ *   alias remains exported because it is part of the plugin's published surface.
  */
-export function validateConfig(value: Config): void {
+export function validateConfig(value: Config | VolatileConfig): void {
   resolveConfig(value)
 }

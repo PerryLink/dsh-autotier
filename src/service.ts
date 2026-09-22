@@ -9,8 +9,7 @@
  */
 
 import { Service, type Context } from '@deepseek-ai/cordis'
-import type { SettingsScope } from '@deepseek-ai/dsh-settings'
-import { resolveConfig, type Config, type ResolvedConfig } from './config.ts'
+import type { ResolvedConfig } from './config.ts'
 import { compileRules, PosteriorTable, type CompiledRule } from './intent.ts'
 import type { AutotierStatus, EffortId, TierRoute } from './types.ts'
 
@@ -23,9 +22,7 @@ declare module '@deepseek-ai/cordis' {
 
 /** Dependencies the service needs from the plugin's `apply`. */
 export interface AutotierServiceOptions {
-  /** The live settings scope; its value is re-resolved on every committed change. */
-  scope: SettingsScope<Config>
-  /** The configuration resolved at mount time (the composition base layer). */
+  /** The configuration resolved at mount time (the composition layer). */
   config: ResolvedConfig
 }
 
@@ -40,30 +37,35 @@ function routeOf(tier: { provider: string; model: string; effort: EffortId; foll
  * plugin unloading removes the service with every listener it owns.
  */
 export class AutotierService extends Service {
-  private readonly scope: SettingsScope<Config>
   private readonly posteriorTable = new PosteriorTable()
   private resolved: ResolvedConfig
   private compiled: CompiledRule[]
 
   /**
-   * Register the service as `ctx.autotier` and start following the settings
-   * namespace.
+   * Register the service as `ctx.autotier`.
    * @param ctx - the owning plugin context.
-   * @param options - the live settings scope and the mount-time configuration.
+   * @param options - the mount-time configuration.
    */
   constructor(ctx: Context, options: AutotierServiceOptions) {
     super(ctx, 'autotier')
-    this.scope = options.scope
     this.resolved = options.config
     this.compiled = compileRules(options.config.intent.rules)
-    ctx.effect(() => this.scope.watch((next) => {
-      // A committed settings write replaces the whole resolved policy. A value
-      // the schema accepted but the cross-field judge rejects keeps the last
-      // good policy: settings.register's validate hook already refused the
-      // write, so reaching here with an invalid value is impossible.
-      this.resolved = resolveConfig(next)
-      this.compiled = compileRules(this.resolved.intent.rules)
-    }))
+  }
+
+  /**
+   * Adopt a configuration a live settings write produced. The caller has
+   * already judged it through {@link resolveConfig}, so this only swaps the
+   * policy and recompiles the rule table.
+   *
+   * The whole policy is replaced, never merged: a settings form submits the
+   * complete Config, so a field the user cleared must fall back to its schema
+   * default rather than keep the previous live value.
+   *
+   * @param config - the newly resolved configuration.
+   */
+  reconfigure(config: ResolvedConfig): void {
+    this.resolved = config
+    this.compiled = compileRules(config.intent.rules)
   }
 
   /** The live resolved configuration. */

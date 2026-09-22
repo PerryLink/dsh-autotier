@@ -18,17 +18,18 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import { registerTierCommand } from './command.ts'
-import { Config, resolveConfig, validateConfig, type Config as AutotierConfig } from './config.ts'
+import { resolveConfig, type Config as AutotierConfig, type VolatileConfig } from './config.ts'
 import { registerGuardHook } from './guard.ts'
 import { AutotierRouter } from './routing.ts'
 import { assertTierDefaultsInCatalog } from './preflight.ts'
 import { AutotierService } from './service.ts'
+import { bindSettings } from './settings.ts'
 import { AgentStateStore, registerTierProjection } from './state.ts'
 import { TierRemoteService } from './tier-remote.ts'
 import { registerTierTools } from './tools.ts'
 
 export { Config, resolveConfig, validateConfig } from './config.ts'
-export type { Config as AutotierConfig, ResolvedConfig } from './config.ts'
+export type { Config as AutotierConfig, ResolvedConfig, VolatileConfig } from './config.ts'
 export type {
   AutotierStatus,
   CostMode,
@@ -127,32 +128,29 @@ export const name = 'dsh-autotier'
 export const inject = ['settings', 'llm', 'tools', 'commands', 'sessions']
 
 /**
- * Mount the plugin: judge the configuration, register the `autotier` settings
- * namespace, publish the `ctx.autotier` service, and wire the routing listeners,
- * the `/tier` command and the two read-only tools.
+ * Mount the plugin: judge the configuration, claim the settings page policy,
+ * publish the `ctx.autotier` service, and wire the routing listeners, the
+ * `/tier` command and the two read-only tools.
  *
  * @param ctx - the plugin context.
- * @param config - the raw row configuration; every field is optional.
+ * @param config - the Loader's volatile row configuration. Also accepts the
+ *   plain-data `AutotierConfig` face, so a programmatic mount or a test can
+ *   pass literal values.
  * @throws {Error} when the configuration fails the cross-field judgement, or
  *   when a default tier model id is absent from a new-generation host catalogue.
  */
-export async function apply(ctx: Context, config: AutotierConfig = {}): Promise<void> {
-  // Resolve first so a bad row fails at mount, before any namespace is
-  // registered (fail loud, and leave no half-mounted state behind).
+export async function apply(ctx: Context, config: AutotierConfig | VolatileConfig = {}): Promise<void> {
+  // Resolve first so a bad row fails at mount, before any service is published
+  // (fail loud, and leave no half-mounted state behind).
   const resolved = resolveConfig(config)
   // Mount-time catalogue membership gate: on the 0.1.6 catalogue generation a
   // default tier id outside the catalogue fails the mount loudly instead of
   // silently degrading to a text-only passthrough (see assertTierDefaultsInCatalog).
   await assertTierDefaultsInCatalog(ctx, resolved.tiers)
-  // Consumer: the plugin reads and validates the shared settings namespace.
-  const scope = ctx.settings.register('autotier', Config, {
-    base: config,
-    applies: 'live',
-    validate: (value) => {
-      validateConfig(value)
-    },
-  })
-  const service = new AutotierService(ctx, { scope, config: resolved })
+  const service = new AutotierService(ctx, { config: resolved })
+  // Settings: claim this instance's page policy and follow live edits. Replaces
+  // the removed `ctx.settings.register('autotier', Config, { base, validate })`.
+  bindSettings({ ctx, config: config as VolatileConfig, service })
   registerTierProjection(ctx)
   const states = new AgentStateStore()
   new AutotierRouter({ ctx, service, states })

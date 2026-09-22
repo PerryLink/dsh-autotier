@@ -8,6 +8,7 @@
  * @module dsh-autotier/schema
  */
 
+import type { Volatile } from '@deepseek-ai/cosmokit'
 import z from '@deepseek-ai/schemastery'
 import {
   COST_MODES,
@@ -105,6 +106,11 @@ export interface EscalationConfig {
  * Raw (possibly partial) plugin configuration. Every field is optional because
  * the resolver supplies the defaults; {@link resolveConfig} turns it into the
  * fully-resolved {@link ResolvedConfig}.
+ *
+ * This is the plain-data face of the row: a caller that builds a config in
+ * process (a test, a programmatic mount) passes this shape. The Loader hands
+ * `apply` the {@link VolatileConfig} face below, because every top-level field
+ * of {@link Config} is declared `.volatile()`.
  */
 export interface Config {
   tiers?: { strong?: TierConfig; cheap?: TierConfig; vision?: VisionConfig }
@@ -112,6 +118,31 @@ export interface Config {
   guard?: GuardConfig
   escalation?: EscalationConfig
   routingMode?: RoutingMode
+}
+
+/**
+ * What `apply` actually receives from the Loader. Each top-level field is a
+ * `Volatile` reference rather than a value, because the host's settings forms
+ * write through `loader/volatile-update` and a consumer must re-read with
+ * `.get()`.
+ *
+ * `.volatile()` is only legal on a fixed object path, so it sits on each
+ * top-level field — never inside `intent.rules` or `tiers.*.fallback`. Marking
+ * the whole section keeps every nested key live while staying inside that rule:
+ * a form edit of `intent.judge.maxTokens` replaces the `intent` snapshot, and
+ * the routing policy re-resolves from the new one.
+ *
+ * `routingMode` is deliberately NOT volatile: it is the composition default,
+ * and the live per-session switch is `RouteState.override` (written by `/tier`
+ * and the Remote `setMode`). Keeping it plain leaves that surface authoritative
+ * instead of introducing a second, document-backed way to change the mode.
+ */
+export interface VolatileConfig {
+  tiers: Volatile<{ strong?: TierConfig; cheap?: TierConfig; vision?: VisionConfig } | undefined>
+  intent: Volatile<IntentConfig | undefined>
+  guard: Volatile<GuardConfig | undefined>
+  escalation: Volatile<EscalationConfig | undefined>
+  routingMode: RoutingMode
 }
 
 
@@ -167,8 +198,16 @@ const cheapTier = z.object({
   })).default([]),
 })
 
-/** Schemastery schema: the loader validates and fills defaults before `apply`. */
-export const Config: z<Config> = z.object({
+/**
+ * Schemastery schema: the loader validates and fills defaults before `apply`.
+ *
+ * Each top-level section is `.volatile()` so a host settings-form write reaches
+ * a running plugin through `loader/volatile-update`. A section that owns no
+ * live-switchable field (`routingMode`) stays plain: `.volatile()` is an opt-in
+ * that adds a form-editable surface, and inventing one for a field the plugin
+ * already switches per session would give the same behaviour two owners.
+ */
+export const Config: z<Config, VolatileConfig> = z.object({
   tiers: z.object({
     strong: strongTier.default({ ...DEFAULT_STRONG, fallback: [] }),
     cheap: cheapTier.default({ ...DEFAULT_CHEAP, fallback: [] }),
@@ -180,7 +219,7 @@ export const Config: z<Config> = z.object({
     strong: { ...DEFAULT_STRONG, fallback: [] },
     cheap: { ...DEFAULT_CHEAP, fallback: [] },
     vision: { ...DEFAULT_VISION },
-  }),
+  }).volatile(),
   intent: z.object({
     ruleThreshold: z.number().min(0.000001).max(1).default(0.7),
     attemptBand: z.object({
@@ -263,7 +302,7 @@ export const Config: z<Config> = z.object({
       multimodal: true,
     },
     costMode: 'balanced',
-  }),
+  }).volatile(),
   guard: z.object({
     enabled: z.boolean().default(true),
     tiers: z.array(z.union(['cheap'])).default(['cheap']),
@@ -276,7 +315,7 @@ export const Config: z<Config> = z.object({
     whitelist: [],
     protectedPaths: ['.dsh', 'AGENTS.md', 'package.json', '.github/workflows'],
     interopDefend: 'auto',
-  }),
+  }).volatile(),
   escalation: z.object({
     threshold: z.number().step(1).min(1).max(100).default(2),
     windowMs: z.number().min(1).max(86_400_000).default(60_000),
@@ -289,7 +328,7 @@ export const Config: z<Config> = z.object({
     ttlMs: 180_000,
     fallbackTtlMs: 300_000,
     signature: true,
-  }),
+  }).volatile(),
   routingMode: z.union([...ROUTING_MODES]).default('auto'),
 })
 
