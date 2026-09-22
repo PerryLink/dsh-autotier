@@ -150,14 +150,18 @@ export const TIER_AGENT_ID_SCHEMA = z.string().optional()
 export const TIER_MODE_SCHEMA = z.enum(ROUTING_MODES)
 
 /**
- * Dual-face strict codec. The rc.2 line consumes `schema`; the alpha.2 line
- * requires `create()` and materializes the schema per boundary use
- * (`codec.create().parse(value)`). Carrying both fields keeps both published
- * lines bootable — each face ignores the field it does not read, and the zod
- * instances carry `.parse` natively.
+ * Strict codec, single-face.
+ *
+ * `TypertCodec`'s strict arm declares exactly one schema entry point,
+ * `create(): TypertSchema`, and the typert-loader enforces it at registration
+ * (`has no create() factory`). The `schema` property this used to carry as a
+ * second face is gone from the protocol, so carrying it was dead weight — the
+ * loader ignores it, and no published line reads it — while still looking like
+ * a supported surface. The zod instance carries `.parse` natively, so the
+ * factory hands the same object back on every call.
  */
 function strictCodec<S extends { parse(value: unknown): unknown }>(typeSymbol: string, schema: S) {
-  return Object.freeze({ mode: 'strict' as const, typeSymbol, schema, create: (): S => schema })
+  return Object.freeze({ mode: 'strict' as const, typeSymbol, create: (): S => schema })
 }
 
 /** The optional trailing agent-id parameter both agent-addressed methods share. */

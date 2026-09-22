@@ -1,28 +1,42 @@
 /**
- * Session-selection synchronisation and multi-router detection.
+ * Session-selection synchronisation.
  *
  * Two harness facts drive this module:
  *
  * 1. The GUI's model picker reads and writes the `agent-default-model`
- *    settings document, so a router that changes the tier must mirror the
- *    change there — otherwise the picker shows a model nobody is using. The
- *    mirror is best-effort: without `agentDefaultModel` it degrades to a
- *    no-op.
- * 2. A user's explicit choice must win. When the document changes to a value
- *    this module did not write, every live session switches to `delegated`
- *    (routing stops) until `/tier auto`.
+ *    configuration, so a router that changes the tier must mirror the change
+ *    there — otherwise the picker shows a model nobody is using. The mirror is
+ *    best-effort: without `agentDefaultModel` it degrades to a no-op.
+ * 2. A user's explicit choice must win. When the documented selection changes
+ *    to a value this module did not write, every live session switches to
+ *    `delegated` (routing stops) until `/tier auto`.
+ *
+ * Fact 2 used to ride the settings service's `settings/updated` commit event.
+ * That event no longer exists: the `0.1.6`-generation host replaced the
+ * settings *provider* with `SettingsForms` (a schema→form projector), so a
+ * plugin can no longer observe another plugin's document. What survives is the
+ * `agentDefaultModel` service itself, which now answers `currentSelection()` by
+ * reading its own live `Volatile` fields.
+ *
+ * Detection is therefore a comparison rather than a subscription: {@link
+ * SelectionSync.observeExternalSelection} freshly reads the documented selection
+ * and delegates when it differs from the value this module last wrote. It runs
+ * on the path that would otherwise overwrite the user — immediately before a
+ * tier is mirrored — so a user's pick can never be silently replaced by a
+ * routing decision, which is the property the old subscription protected.
  *
  * @module dsh-autotier/selection
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import type {} from '@deepseek-ai/dsh-settings'
 import type { AgentStateStore } from './state.ts'
 import type { TierRoute } from './types.ts'
 
 /** The subset of `ctx.agentDefaultModel` this module uses. */
 interface DefaultModelService {
+  /** Read the currently documented selection. */
+  currentSelection(): { provider: string; model: string; reasoningEffort?: string }
   saveSelection(next: { provider: string; model: string; reasoningEffort?: string }): Promise<void>
 }
 
@@ -61,15 +75,6 @@ export class SelectionSync {
   constructor(options: SelectionSyncOptions) {
     this.ctx = options.ctx
     this.states = options.states
-    this.ctx.on('settings/updated', (ns, next) => {
-      if (String(ns) !== 'agent-default-model') return
-      const key = selectionKey(next)
-      if (this.selfWrite === key) {
-        this.selfWrite = undefined
-        return
-      }
-      this.delegateLiveSessions(key)
-    })
   }
 
   /** The optional default-model service. */
@@ -78,13 +83,42 @@ export class SelectionSync {
   }
 
   /**
-   * Mirror one applied landing into the default-model document. Repeated
-   * landings with the same value are skipped, so a long cheap run writes once.
+   * Read the documented selection and delegate every live session when it is
+   * no longer the value this module wrote.
+   *
+   * Before this module's first write nothing is delegated, whatever the
+   * document holds: at that point "not ours" describes the composition default
+   * and any selection the user made before the plugin ever routed, and neither
+   * is an override of a routing decision. Once this module owns a write, any
+   * divergence is by construction somebody else's edit.
+   */
+  observeExternalSelection(): void {
+    if (this.selfWrite === undefined) return
+    const service = this.defaultModel
+    if (service === undefined) return
+    let current: unknown
+    try {
+      current = service.currentSelection()
+    } catch (error) {
+      this.ctx.logger.debug('dsh-autotier: could not read the default-model selection: %o', error)
+      return
+    }
+    const key = selectionKey(current)
+    if (key === this.selfWrite) return
+    this.delegateLiveSessions(key)
+  }
+
+  /**
+   * Mirror one applied landing into the default-model document. An external
+   * change to that document is honoured first, so routing never overwrites the
+   * model the user picked. Repeated landings with the same value are skipped,
+   * so a long cheap run writes once.
    * @param route - the landing actually applied.
    */
   noteRoute(route: TierRoute): void {
     const service = this.defaultModel
     if (service === undefined) return
+    this.observeExternalSelection()
     const selection = {
       provider: route.provider,
       model: route.model,

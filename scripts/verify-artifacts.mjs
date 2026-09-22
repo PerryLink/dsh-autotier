@@ -50,7 +50,8 @@ if (declaration.includes('deepseek-harness')) {
 }
 
 // 4. The Typert host manifest must carry the three tier invocations, each with
-//    a strict zod v4 codec (the loader rejects anything else).
+//    a strict zod v4 codec reached through `create()` — the codec's only schema
+//    entry point, and the one the typert-loader requires.
 const typert = await import(pathToFileURL(path.join(root, 'lib/typert.host.js')).href)
 const manifest = typert.TYPERT
 if (manifest?.package !== 'dsh-autotier' || manifest?.face !== 'host') {
@@ -63,7 +64,14 @@ for (const invocation of manifest.invocations) {
   if (invocation.service !== 'tier' || invocation.namespace !== 'tier' || typeof invocation.method !== 'string') {
     throw new Error(`lib/typert.host.js invocation ${String(invocation.id)} is not a tier method`)
   }
-  if (invocation.result?.mode !== 'strict' || !('_zod' in (invocation.result.schema ?? {}))) {
+  const codec = invocation.result
+  if (codec?.mode !== 'strict' || typeof codec.create !== 'function') {
+    throw new Error(`lib/typert.host.js invocation ${String(invocation.id)} has no strict typert codec`)
+  }
+  if ('schema' in codec) {
+    throw new Error(`lib/typert.host.js invocation ${String(invocation.id)} still carries the retired schema codec face`)
+  }
+  if (!('_zod' in codec.create())) {
     throw new Error(`lib/typert.host.js invocation ${String(invocation.id)} has no zod v4 result codec`)
   }
 }

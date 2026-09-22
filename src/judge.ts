@@ -8,9 +8,30 @@
  */
 
 import type { Context } from '@deepseek-ai/cordis'
-import { BlockAssembler, createUserMessage, type GenerateOptions } from '@deepseek-ai/dsh-llm'
+import {
+  BlockAssembler,
+  boundContextSummary,
+  createUserMessage,
+  type ContextFormed,
+  type GenerateOptions,
+} from '@deepseek-ai/dsh-llm'
 import type { ResolvedConfig } from './config.ts'
 import type { Scenario, TierId } from './types.ts'
+
+/**
+ * This plugin's own message-source kind.
+ *
+ * The harness has no shared catch-all `plugin` kind: `MessageSourceMap` is a
+ * merge-extensible sum type, each producer declares its own `kind` in its own
+ * module, and the session format's physical-row admission rejects the retired
+ * `kind === 'plugin'` wrapper outright (`session-format-v3-to-v4`
+ * `assertV4SourceRowAdmission`, which nothing at runtime can bypass).
+ */
+declare module '@deepseek-ai/dsh-llm' {
+  interface MessageSourceMap {
+    'dsh-autotier': { kind: 'dsh-autotier' } & ContextFormed
+  }
+}
 
 /** The label vocabulary the judge is asked to choose from. */
 export const JUDGE_LABELS: readonly { readonly label: string; readonly scenario: Scenario }[] = [
@@ -117,7 +138,14 @@ export async function runJudge(
     model: route.model,
     messages: [createUserMessage({
       content: [{ type: 'text', text: prompt }],
-      source: { kind: 'plugin', plugin: 'dsh-autotier' },
+      // A producer-owned kind with a `notice` form: the one-line account is
+      // committed to the durable log, so a reader can tell why an extra model
+      // call happened without expanding the row.
+      source: {
+        kind: 'dsh-autotier',
+        form: 'notice',
+        summary: boundContextSummary(`autotier judge: classify intent (${route.provider}/${route.model})`),
+      },
     })],
     temperature: config.intent.judge.temperature,
     maxTokens: config.intent.judge.maxTokens,
