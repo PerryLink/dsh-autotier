@@ -32,7 +32,7 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | अब समर्थित नहीं; वह लाइन उस `SettingsForms` अनुबंध से पुरानी है जिस पर यह प्लगइन अब लक्ष्य करता है |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | अब समर्थित नहीं; उसका `settings.register` / `settings/updated` अनुबंध upstream में हटा दिया गया |
 | `@deepseek-ai/dsh` `0.1.6-alpha.2` | अब समर्थित नहीं; वही हटाव, `SettingsForms` वाली पहली लाइन |
-| `@deepseek-ai/dsh` `0.1.7-alpha.1` | **आवश्यक**; मेल खाते checkout (`typecheck`) और प्रकाशित पैकेजों (`typecheck:ci`, 214 टेस्ट) दोनों पर सत्यापित |
+| `@deepseek-ai/dsh` `0.1.7-alpha.2` | **आवश्यक**; मेल खाते checkout (`typecheck`) और प्रकाशित पैकेजों (`typecheck:ci`, 214 टेस्ट) दोनों पर सत्यापित |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer आधार |
 
 peer ranges चारों प्रकाशित लाइनें स्पष्ट रूप से लिखती हैं (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), क्योंकि जिस range का एकमात्र prerelease comparator
@@ -250,7 +250,7 @@ pill और कार्ड का सेलेक्टर लिखते ह�
 ```bash
 pnpm install
 pnpm run typecheck      # स्थानीय harness checkout के type faces के विरुद्ध
-pnpm run typecheck:ci   # प्रकाशित 0.1.7-alpha.1 faces के विरुद्ध (CI यही चलाता है)
+pnpm run typecheck:ci   # प्रकाशित 0.1.7-alpha.2 faces के विरुद्ध (CI यही चलाता है)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained
@@ -278,7 +278,7 @@ PerryLink. Issues और pull requests:
 Apache-2.0. देखें [LICENSE](./LICENSE) और
 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)।
 
-**लागू DSH संस्करण:** `dsh-v0.1.7-alpha.1` (यह बिल्ड जिस होस्ट रिलीज़ को लक्षित करता है) पर सत्यापित; आवश्यक `>=0.1.7-alpha.1 <0.2.0`।
+**लागू DSH संस्करण:** `dsh-v0.1.7-alpha.2` (यह बिल्ड जिस होस्ट रिलीज़ को लक्षित करता है) पर सत्यापित; आवश्यक `>=0.1.7-alpha.1 <0.2.0`।
 
 ## PerryLink DSH Plugin Family
 
