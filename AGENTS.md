@@ -49,7 +49,7 @@ records repo-local decisions.
   needs no `configForms` entry: the Host generates the config form for the
   `autotier` row from its `Config` schema, and this card is the dedicated
   runtime surface (routing mode, live landings, catalog).
-- `tests/` — vitest over the REAL published `0.1.7-alpha.2` host packages
+- `tests/` — vitest over the REAL published `0.1.7-rc.1` host packages
   (`Context`, `SessionStore`, `SystemPrompt`, `ToolRuntime`, `CommandRuntime`)
   plus one real Loader composition. The `settings` service is the one stand-in:
   the host's real `SettingsForms` binds to `configEditor`, `profileContext` and
@@ -122,7 +122,7 @@ with the shell's platform modules (`react`, `react/jsx-runtime`, the
 pnpm run verify:self-contained && pnpm run verify:artifacts && pnpm pack`. The
 plain `typecheck` resolves the local harness checkout's type faces through
 tsconfig `paths` (four levels up to `D:\deepseek-harness`); `typecheck:ci`
-resolves the npm-published `0.1.7-alpha.2` faces (no paths) and is what CI runs —
+resolves the npm-published `0.1.7-rc.1` faces (no paths) and is what CI runs —
 keep both green. Both rulers must be on the SAME host line: this plugin's
 settings seam exists only from `0.1.6-alpha.2` on, so a green checkout ruler with
 a stale published pin would prove nothing.

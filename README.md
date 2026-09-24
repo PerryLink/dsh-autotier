@@ -33,7 +33,7 @@ escalate to the strong tier with a TTL fallback.
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | no longer supported; that line predates the `SettingsForms` contract this plugin now targets |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | no longer supported; the `settings.register` / `settings/updated` contract it exposes was removed upstream |
 | `@deepseek-ai/dsh` `0.1.6-alpha.2` | no longer supported; same removal, first line to ship `SettingsForms` |
-| `@deepseek-ai/dsh` `0.1.7-alpha.2` | **required**; verified against the matching checkout (`typecheck`) and the published packages (`typecheck:ci`, 214 tests) |
+| `@deepseek-ai/dsh` `0.1.7-rc.1` | **required**; verified against the matching checkout (`typecheck`) and the published packages (`typecheck:ci`, 214 tests) |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer baseline |
 
 Peer ranges name all published lines explicitly (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), because a semver range whose only prerelease
@@ -262,7 +262,7 @@ give the same behaviour two owners.
 ```bash
 pnpm install
 pnpm run typecheck      # against the local harness checkout type faces
-pnpm run typecheck:ci   # against the published 0.1.7-alpha.2 faces (what CI runs)
+pnpm run typecheck:ci   # against the published 0.1.7-rc.1 faces (what CI runs)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained
@@ -289,7 +289,7 @@ plus the Loader's `loader/volatile-update` event.
 PerryLink. Issues and pull requests are welcome at
 <https://github.com/PerryLink/dsh-autotier/issues>.
 
-**Applicable DSH version:** verified against `dsh-v0.1.7-alpha.2` (the host release this build targets); requires `>=0.1.7-alpha.1 <0.2.0`.
+**Applicable DSH version:** verified against `dsh-v0.1.7-rc.1` (the host release this build targets); requires `>=0.1.7-alpha.1 <0.2.0`.
 
 ## PerryLink DSH Plugin Family
 

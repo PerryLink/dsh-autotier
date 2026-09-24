@@ -34,7 +34,7 @@ strong con un TTL de retorno.
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | ya no compatible; esa línea es anterior al contrato `SettingsForms` al que apunta ahora el plugin |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | ya no compatible; el contrato `settings.register` / `settings/updated` que expone fue eliminado aguas arriba |
 | `@deepseek-ai/dsh` `0.1.6-alpha.2` | ya no compatible; la misma eliminación, primera línea con `SettingsForms` |
-| `@deepseek-ai/dsh` `0.1.7-alpha.2` | **requerida**; verificada contra el checkout correspondiente (`typecheck`) y los paquetes publicados (`typecheck:ci`, 214 pruebas) |
+| `@deepseek-ai/dsh` `0.1.7-rc.1` | **requerida**; verificada contra el checkout correspondiente (`typecheck`) y los paquetes publicados (`typecheck:ci`, 214 pruebas) |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | base de peers |
 
 Los rangos de peers nombran las cuatro líneas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque un rango cuyo único comparador de prerelease
@@ -259,7 +259,7 @@ comportamiento dos dueños.
 ```bash
 pnpm install
 pnpm run typecheck      # contra las caras de tipo del checkout local del harness
-pnpm run typecheck:ci   # contra las caras publicadas 0.1.7-alpha.2 (lo que ejecuta CI)
+pnpm run typecheck:ci   # contra las caras publicadas 0.1.7-rc.1 (lo que ejecuta CI)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained
