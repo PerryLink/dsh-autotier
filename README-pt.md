@@ -40,7 +40,7 @@ Este plugin faz parte da [família de plugins DSH](https://github.com/PerryLink)
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | não é mais suportada; essa linha é anterior ao contrato `SettingsForms` que o plugin agora mira |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | não é mais suportada; o contrato `settings.register` / `settings/updated` que ela expõe foi removido a montante |
 | `@deepseek-ai/dsh` `0.1.6-alpha.2` | não é mais suportada; a mesma remoção, primeira linha com `SettingsForms` |
-| `@deepseek-ai/dsh` `0.1.7-rc.1` | **obrigatória**; verificada contra o checkout correspondente (`typecheck`) e os pacotes publicados (`typecheck:ci`, 214 testes) |
+| `@deepseek-ai/dsh` `0.1.7-rc.2` | **obrigatória**; verificada contra o checkout correspondente (`typecheck`) e os pacotes publicados (`typecheck:ci`, 214 testes) |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | base de peers |
 
 Os ranges de peers nomeiam as quatro linhas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque um range cujo único comparador de prerelease
@@ -264,7 +264,7 @@ também daria a um mesmo comportamento dois donos.
 ```bash
 pnpm install
 pnpm run typecheck      # contra as faces de tipo do checkout local do harness
-pnpm run typecheck:ci   # contra as faces publicadas 0.1.7-rc.1 (o que a CI executa)
+pnpm run typecheck:ci   # contra as faces publicadas 0.1.7-rc.2 (o que a CI executa)
 pnpm test
 pnpm run build
 pnpm run verify:self-contained

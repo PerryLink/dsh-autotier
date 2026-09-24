@@ -36,7 +36,7 @@ DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | 不再支持；该线早于本插件现在对准的 `SettingsForms` 契约 |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | 不再支持；它所暴露的 `settings.register` / `settings/updated` 契约已被上游删除 |
 | `@deepseek-ai/dsh` `0.1.6-alpha.2` | 不再支持；同一处删除，首个带 `SettingsForms` 的版本 |
-| `@deepseek-ai/dsh` `0.1.7-rc.1` | **必需**；已对同版 checkout（`typecheck`）与已发布包（`typecheck:ci`、214 项测试）双向验证 |
+| `@deepseek-ai/dsh` `0.1.7-rc.2` | **必需**；已对同版 checkout（`typecheck`）与已发布包（`typecheck:ci`、214 项测试）双向验证 |
 | `@deepseek-ai/cordis` `^4.0.3`、`@deepseek-ai/cosmokit` `^1.8.4`、`@deepseek-ai/schemastery` `^3.18.3` | peer 基线 |
 
 peer 范围显式列出四条已发布线（`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`）——因为仅含较早版本元组预发布比较符的 semver 范围无法接纳更晚的 alpha；
@@ -229,7 +229,7 @@ dsh plugin --profile web remove dsh-autotier
 ```bash
 pnpm install
 pnpm run typecheck      # 对照本地 harness checkout 的类型面
-pnpm run typecheck:ci   # 对照已发布的 0.1.7-rc.1 类型面（CI 实际执行）
+pnpm run typecheck:ci   # 对照已发布的 0.1.7-rc.2 类型面（CI 实际执行）
 pnpm test
 pnpm run build
 pnpm run verify:self-contained
@@ -256,7 +256,7 @@ PerryLink。欢迎在 <https://github.com/PerryLink/dsh-autotier/issues> 提 iss
 Apache-2.0。见 [LICENSE](./LICENSE) 与
 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
 
-**适用的 DSH 版本：** 已在 `dsh-v0.1.7-rc.1`（本构建所针对的宿主版本）上验证；要求 `>=0.1.7-alpha.1 <0.2.0`。
+**适用的 DSH 版本：** 已在 `dsh-v0.1.7-rc.2`（本构建所针对的宿主版本）上验证；要求 `>=0.1.7-alpha.1 <0.2.0`。
 
 ## PerryLink DSH Plugin Family
 
