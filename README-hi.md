@@ -285,7 +285,7 @@ PerryLink. Issues और pull requests:
 Apache-2.0. देखें [LICENSE](./LICENSE) और
 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)।
 
-**लागू DSH संस्करण:** `dsh-v0.1.7-rc.2` (यह बिल्ड जिस होस्ट रिलीज़ को लक्षित करता है) पर सत्यापित; आवश्यक `>=0.1.7-alpha.1 <0.2.0`।
+**लागू DSH संस्करण:** `dsh-v0.2.1-alpha.1` (यह बिल्ड जिस होस्ट रिलीज़ को लक्षित करता है) पर सत्यापित; आवश्यक `>=0.1.7-alpha.1 <0.2.0`।
 
 ## PerryLink DSH Plugin Family
 

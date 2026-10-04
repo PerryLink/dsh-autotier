@@ -297,7 +297,7 @@ plus the Loader's `loader/volatile-update` event.
 PerryLink. Issues and pull requests are welcome at
 <https://github.com/PerryLink/dsh-autotier/issues>.
 
-**Applicable DSH version:** verified against `dsh-v0.1.7-rc.2` (the host release this build targets); requires `>=0.1.7-alpha.1 <0.2.0`.
+**Applicable DSH version:** verified against `dsh-v0.2.1-alpha.1` (the host release this build targets); requires `>=0.1.7-alpha.1 <0.2.0`.
 
 ## PerryLink DSH Plugin Family
 
