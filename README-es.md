@@ -294,6 +294,25 @@ PerryLink. Issues y pull requests en
 Apache-2.0. Véase [LICENSE](./LICENSE) y
 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
 
+## Interoperabilidad con otros plugins de DSH
+
+Verificado contra **DSH `0.2.0-rc.2`** (el runtime para el que se publica este README) y el conjunto de plugins con más estrellas sondeado el 2026-10-05.
+
+Este plugin **no interfiere** con otros plugins, incluidos los de más estrellas:
+
+- **Sin colisión de nombres de herramienta.** Todas las herramientas llevan espacio de nombres; ninguna ocupa un nombre desnudo ya perteneciente a una herramienta incluida u otro plugin.
+- **Sin colisión de clave de servicio.** Solo provee `autotier`; esa clave no es una costura incluida ni la provee ningún plugin de más estrellas.
+- **Sin colisión de slot.** No registra ninguna clave de slot de cliente, así que no disputa un asiento `shadows-shipped-ui`.
+- **Sin colisión de ruta HTTP.** No registra ningún prefijo `webServer`.
+- **Sin colisión en la capa de patch.** El patch del bundle solo hace `insert` de su propia fila; nunca sobrescribe el `config` de una fila incluida.
+- **Sin mutación global.** No parchea prototipos, ni reescribe `process.env`, ni reemplaza el dispatcher global de fetch.
+
+**Los listeners de eventos compartidos no interfieren por construcción.** Observa los eventos sensibles al orden `agent/created`, `agent/request`, `agent/request-error`, `tools/pre-execute` con `ctx.on()` — el registro de difusión de Cordis, donde cada listener se ejecuta y ninguno puede dejar sin turno a otro. **Todos los listeners aquí delegan por `next()`**, así que la cadena nunca se cortocircuita:
+  - `agent/request` — also used by `dsh-agent-teams` (1923★), which short-circuits by throwing without calling `next()`.
+  - `tools/pre-execute` — also used by `cc-safety-net` (1576★).
+
+Evidencia estática: `dsh-plugin-doctor` K10–K13 dan `pass` en todas las comprobaciones de este repositorio.
+
 ## PerryLink DSH Plugin Family
 
 This project is one of the **45 DeepSeek Harness plugins** maintained by [PerryLink](https://github.com/PerryLink). If this one helps you, the others likely will too:
