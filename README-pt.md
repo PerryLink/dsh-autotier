@@ -43,7 +43,7 @@ Este plugin faz parte da [família de plugins DSH](https://github.com/PerryLink)
 | `@deepseek-ai/dsh` `0.1.7-rc.2` | **obrigatória**; verificada contra o checkout correspondente (`typecheck`) e os pacotes publicados (`typecheck:ci`, 214 testes) |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | base de peers |
 
-Os ranges de peers nomeiam as quatro linhas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque um range cujo único comparador de prerelease
+Os ranges de peers nomeiam as quatro linhas publicadas (`>=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque um range cujo único comparador de prerelease
 está numa tupla anterior não admite um alpha posterior. São atualizados por onda.
 O range declarado é deliberadamente mais amplo que o verificado: documenta o que o
 manifesto aceita, não o que foi testado.

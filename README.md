@@ -44,7 +44,7 @@ escalate to the strong tier with a TTL fallback.
 | `@deepseek-ai/dsh` `0.1.7-rc.2` | **required**; verified against the matching checkout (`typecheck`) and the published packages (`typecheck:ci`, 214 tests) |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer baseline |
 
-Peer ranges name all published lines explicitly (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), because a semver range whose only prerelease
+Peer ranges name all published lines explicitly (`>=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), because a semver range whose only prerelease
 comparator sits on an earlier version tuple does not admit a later alpha.
 They are refreshed per published wave. The declared range is deliberately wider
 than the verified one: it documents what the manifest accepts, not what has been

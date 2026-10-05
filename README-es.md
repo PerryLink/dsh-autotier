@@ -44,7 +44,7 @@ Este plugin forma parte de la [familia de plugins DSH](https://github.com/PerryL
 | `@deepseek-ai/dsh` `0.1.7-rc.2` | **requerida**; verificada contra el checkout correspondiente (`typecheck`) y los paquetes publicados (`typecheck:ci`, 214 pruebas) |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | base de peers |
 
-Los rangos de peers nombran las cuatro líneas publicadas (`>=0.1.2-rc.1 <0.2.0 || >=0.1.5-alpha.1 <0.2.0 || >=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque un rango cuyo único comparador de prerelease
+Los rangos de peers nombran las cuatro líneas publicadas (`>=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`), porque un rango cuyo único comparador de prerelease
 está en una tupla anterior no admite un alpha posterior. Se refrescan por ola.
 El rango declarado es deliberadamente más amplio que el verificado: documenta lo
 que acepta el manifiesto, no lo que se ha probado.
