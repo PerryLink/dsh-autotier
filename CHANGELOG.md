@@ -5,12 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.15] - 2026-10-06
+
+### Fixed
+
+- **0.2.14 shipped READMEs that contradicted its own manifest.** That entry claimed "the five READMEs state the resulting band", but they were not touched: every language still printed `>=0.1.6-0 <0.2.0 || >=0.1.7-0 <0.2.0`, a two-clause band that neither matched `package.json` before the change (which already carried `>=0.2.0-0 <0.3.0`) nor after it. The published 0.2.14 tarball therefore advertised a host range narrower than the one it actually declares. All five READMEs now print the real band, `>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0 || >=0.2.1-0 <0.3.0`, and the 0.2.14 entry above is annotated rather than rewritten.
+
 ## [0.2.14] - 2026-10-06
 
 ### Changed
 
-- **The declared peer band did not admit the line the package runs on.** The dev/test pins moved to `0.2.1-alpha.1`, but the band was `>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0`, and under semver's prerelease rule a `0.2.0` tuple cannot admit a `0.2.1` prerelease 鈥?so the line this build is measured on was excluded by its own range. A `|| >=0.2.1-0 <0.3.0` clause is appended, exactly as every earlier prerelease tuple gained its own clause. Nothing previously admitted is dropped: the `0.1.6` floor stays where the 0.2.13 entry put it, and the earlier clauses are deliberately not restored.
-- The same clause is added to `engines.dsh`, and the five READMEs state the resulting band (the published tarball still carried the pre-`0.2.0` band).
+- **The declared peer band did not admit the line the package runs on.** The dev/test pins moved to `0.2.1-alpha.1`, but the band was `>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0`, and under semver's prerelease rule a `0.2.0` tuple cannot admit a `0.2.1` prerelease — so the line this build is measured on was excluded by its own range. A `|| >=0.2.1-0 <0.3.0` clause is appended, exactly as every earlier prerelease tuple gained its own clause. Nothing previously admitted is dropped: the `0.1.6` floor stays where the 0.2.13 entry put it, and the earlier clauses are deliberately not restored.
+- The same clause is added to `engines.dsh`. **Correction (0.2.15): this entry originally also claimed the five READMEs were updated, which was not true — see 0.2.15.**
 
 
 ## [0.2.13] - 2026-10-05
