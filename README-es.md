@@ -28,6 +28,8 @@ strong con un TTL de retorno.
 - **npm**: `dsh-autotier` (nombre simple, sin scope)
 
 
+**📖 Base de conocimiento del ecosistema** — datos medidos, no marketing: [guía de desarrollo · datos de selección · criterios de mantenimiento](https://perrylink.github.io/dsh-plugin-guide/).
+
 <!-- star-cta -->
 ## ⭐ 如果它帮到了你
 
