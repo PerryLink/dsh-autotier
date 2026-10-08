@@ -1,5 +1,11 @@
 # dsh-autotier
 
+**English** | [简体中文](README-zh.md) | [Español](README-es.md) | [Português](README-pt.md) | [हिन्दी](README-hi.md)
+
+Automatic model-tier routing for DeepSeek Harness: one user instruction enters,
+one tier decision comes out — no manual model switching.
+
+
 [![Gitee](https://img.shields.io/badge/Gitee-mirror-c71d23?logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/PerryLink/dsh-autotier/badge)](https://api.securityscorecards.dev/projects/github.com/PerryLink/dsh-autotier)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -10,11 +16,6 @@
 [![CI](https://img.shields.io/github/actions/workflow/status/PerryLink/dsh-autotier/ci.yml?branch=main&label=CI)](https://github.com/PerryLink/dsh-autotier/actions)
 [![Version](https://img.shields.io/github/v/tag/PerryLink/dsh-autotier?label=version)](https://github.com/PerryLink/dsh-autotier/releases)
 [![dshfind](https://dshfind.com/api/badge/PerryLink/dsh-autotier?metric=downloads)](https://dshfind.com/plugins/PerryLink/dsh-autotier?ref=badge)
-
-**English** | [简体中文](README-zh.md) | [Español](README-es.md) | [Português](README-pt.md) | [हिन्दी](README-hi.md)
-
-Automatic model-tier routing for DeepSeek Harness: one user instruction enters,
-one tier decision comes out — no manual model switching.
 
 Complex intent (architecture, planning, debugging, multi-step engineering) is
 planned on the **strong** tier and then implemented on the **cheap** tier.
