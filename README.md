@@ -37,6 +37,14 @@ escalate to the strong tier with a TTL fallback.
 *English:* part of a 40+ plugin family for DeepSeek Harness. If it is useful, **a star helps the next person find it** — nothing is gated behind it.
 
 
+## What is dsh-autotier?
+
+npm channel
+
+git channel
+
+![Terminal demo of dsh-autotier: dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.png)
+
 ## Compatibility
 
 | Harness | Status |
@@ -94,6 +102,10 @@ optional and only makes the router's decisions visible to the model (see
 
 ## Quick start
 
+```sh
+dsh plugin --profile web add github:PerryLink/dsh-autotier
+```
+
 ```bash
 dsh plugin --profile web add dsh-autotier
 npm i -g dsh1024
@@ -116,7 +128,7 @@ dsh1024 plugin --profile web add dsh-autotier
 **git channel**
 
 ```bash
-dsh plugin --profile web add "github:PerryLink/dsh-autotier#main"
+dsh plugin --profile web add github:PerryLink/dsh-autotier
 git clone https://github.com/PerryLink/dsh-autotier.git
 cd dsh-autotier && pnpm install && pnpm run build
 dsh plugin --profile web add .

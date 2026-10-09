@@ -31,6 +31,14 @@ DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个
 这个插件是 [DSH 插件家族](https://github.com/PerryLink)的一员（40+ 个，全部 Apache-2.0）。如果你在用，**给个 star** —— 它不会解锁任何功能，但会让下一个人在搜索里更容易找到它。
 
 *English:* part of a 40+ plugin family for DeepSeek Harness. If it is useful, **a star helps the next person find it** — nothing is gated behind it.
+## What is dsh-autotier?
+
+npm 通道
+
+git 通道
+
+![dsh-autotier 终端演示：dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.png)
+
 ## 兼容性
 
 | Harness | 状态 |
@@ -75,6 +83,10 @@ peer 范围显式列出四条已发布线（`>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.
   插件观察或覆盖决策。
 
 ## 快速开始
+
+```sh
+dsh plugin --profile web add github:PerryLink/dsh-autotier
+```
 
 ```bash
 npm i -g dsh1024

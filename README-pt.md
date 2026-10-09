@@ -35,6 +35,14 @@ retorno.
 Este plugin faz parte da [família de plugins DSH](https://github.com/PerryLink) (mais de 40, todos Apache-2.0). Se for útil, **deixe uma estrela**: não desbloqueia nada, mas ajuda a próxima pessoa a encontrá-lo.
 
 *English:* part of a 40+ plugin family for DeepSeek Harness. If it is useful, **a star helps the next person find it** — nothing is gated behind it.
+## What is dsh-autotier?
+
+Canal npm
+
+Canal git
+
+![Demonstração de terminal do dsh-autotier: dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.png)
+
 ## Compatibilidade
 
 | Harness | Estado |
@@ -92,6 +100,10 @@ apenas torna as decisões visíveis ao modelo (veja [Instalação e desinstalaç
   outros plugins observem ou anulem uma decisão.
 
 ## Início rápido
+
+```sh
+dsh plugin --profile web add github:PerryLink/dsh-autotier
+```
 
 ```bash
 npm i -g dsh1024
