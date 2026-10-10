@@ -45,6 +45,10 @@ Canal git
 
 ![Demostración de terminal de dsh-autotier: dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.png)
 
+![Animated terminal demo of dsh-autotier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.gif)
+
+*La misma ejecución, animada.*
+
 ## Compatibilidad
 
 | Harness | Estado |

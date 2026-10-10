@@ -40,6 +40,10 @@ git 通道
 
 ![dsh-autotier 终端演示：dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.png)
 
+![Animated terminal demo of dsh-autotier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.gif)
+
+*同一次运行，动图版。*
+
 ## 兼容性
 
 | Harness | 状态 |
