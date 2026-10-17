@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.17] - 2026-10-18
+
+### Changed
+
+- **B0 completed and the compatibility claim now matches the manifest.** 26 `@deepseek-ai/dsh-*` devDependencies moved from `0.2.1-alpha.1` to `0.2.1-rc.2`; `dshReleases`/`dshVersions` name `0.2.1-rc.2`; the five READMEs say the required line is `0.2.1-rc.2` and the band is the manifest band.
+
 All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),

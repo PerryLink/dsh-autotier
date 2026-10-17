@@ -56,7 +56,8 @@ git channel
 | `@deepseek-ai/dsh` `0.1.2-rc.1` | no longer supported; that line predates the `SettingsForms` contract this plugin now targets |
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | no longer supported; the `settings.register` / `settings/updated` contract it exposes was removed upstream |
 | `@deepseek-ai/dsh` `0.1.6-alpha.2` | no longer supported; same removal, first line to ship `SettingsForms` |
-| `@deepseek-ai/dsh` `0.1.7-rc.2` | **required**; verified against the matching checkout (`typecheck`) and the published packages (`typecheck:ci`, 214 tests) |
+| `@deepseek-ai/dsh` `0.1.7-rc.2` | compatible; verified on the 0.1.7 line |
+| `@deepseek-ai/dsh` `0.2.1-rc.2` | **required**; verified against the matching checkout (`typecheck`) and the published packages (`typecheck:ci`, 214 tests) |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer baseline |
 
 Peer ranges name all published lines explicitly (`>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0 || >=0.2.1-0 <0.3.0`), because a semver range whose only prerelease
@@ -335,7 +336,7 @@ Static evidence: `dsh-plugin-doctor` K10–K13 report `pass` for every check on 
 PerryLink. Issues and pull requests are welcome at
 <https://github.com/PerryLink/dsh-autotier/issues>.
 
-**Applicable DSH version:** verified against `dsh-v0.2.1-alpha.1` (the host release this build targets); requires `>=0.1.7-alpha.1 <0.2.0`.
+**Applicable DSH version:** verified against `dsh-v0.2.1-rc.2` (the host release this build targets); requires `>=0.1.6-0 <0.2.0` / `>=0.2.0-0 <0.3.0` / `>=0.2.1-0 <0.3.0`.
 
 ## PerryLink DSH Plugin Family
 

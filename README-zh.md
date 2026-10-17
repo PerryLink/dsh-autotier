@@ -275,7 +275,7 @@ PerryLink。欢迎在 <https://github.com/PerryLink/dsh-autotier/issues> 提 iss
 Apache-2.0。见 [LICENSE](./LICENSE) 与
 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
 
-**适用的 DSH 版本：** 已在 `dsh-v0.2.1-alpha.1`（本构建所针对的宿主版本）上验证；要求 `>=0.1.7-alpha.1 <0.2.0`。
+**适用的 DSH 版本：** 已在 `dsh-v0.2.1-rc.2`（本构建所针对的宿主版本）上验证；要求 `>=0.1.7-alpha.1 <0.2.0`。
 
 ## 与其他 DSH 插件的互操作
 
