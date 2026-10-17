@@ -1,5 +1,14 @@
-{
-  "screenshots": [
-    "docs/assets/dsh-autotier-demo.png"
-  ]
-}
+[
+  {
+    "path": "docs/assets/dsh-autotier-hero.png",
+    "kind": "hero",
+    "alt": "dsh-autotier terminal output",
+    "caption": "Real dsh-autotier test run; 214 tests passed."
+  },
+  {
+    "path": "docs/assets/dsh-autotier-demo.gif",
+    "kind": "demo",
+    "alt": "Animated dsh-autotier terminal session",
+    "caption": "The same run, assembled line by line."
+  }
+]
