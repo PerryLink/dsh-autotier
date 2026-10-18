@@ -1,5 +1,12 @@
 # dsh-autotier
 
+[English](README.md) · [简体中文](README-zh.md) · [Español](README-es.md) · [Português](README-pt.md) · [हिन्दी](README-hi.md)
+
+```sh
+dsh plugin --profile <name> add dsh-autotier
+```
+
+
 [![Gitee](https://img.shields.io/badge/Gitee-mirror-c71d23?logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![DSH plugin](https://img.shields.io/badge/dsh--plugin-✅-green)](https://github.com/topics/dsh-plugin)
@@ -29,6 +36,44 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 **📖 इकोसिस्टम नॉलेज बेस** — मापे गए आँकड़े, मार्केटिंग नहीं: [डेवलपमेंट गाइड · चयन डेटा · रखरखाव मानदंड](https://perrylink.github.io/dsh-plugin-guide/)।
 
 <!-- star-cta -->
+## इंस्टॉल और अनइंस्टॉल
+
+**npm चैनल**
+
+```bash
+npm i -g dsh1024
+dsh1024 plugin --profile web add dsh-autotier
+```
+
+**git चैनल**
+
+```bash
+git clone https://github.com/PerryLink/dsh-autotier.git
+cd dsh-autotier && pnpm install && pnpm run build
+dsh plugin --profile web add .
+```
+
+**वैकल्पिक preset प्रॉम्प्ट खंड।** इसके बिना भी राउटर काम करता है। मॉडल को यह
+बताने के लिए कि वह किस स्तर पर चल रहा है, *अपने* preset में एक पंक्ति जोड़ें
+(सटीक ब्लॉक `docs/preset-row.md` में है):
+
+```yaml
+- insert:
+    - id: autotier-prompt
+      name: '@deepseek-ai/dsh-system-prompt'
+      # sections: [...]  — देखें docs/preset-row.md
+```
+
+**अनइंस्टॉल**
+
+```bash
+dsh plugin --profile web remove dsh-autotier
+```
+
+पंक्ति, उसका कमांड, उसके टूल और सभी listeners प्लगइन के साथ हट जाते हैं।
+Plugins पेज से सहेजी गई कॉन्फ़िगरेशन सक्रिय profile patch में रहती है और उस
+profile की है, इस प्लगइन की नहीं; पंक्ति हटाने पर वह वहीं अछूती रहती है।
+
 ## ⭐ 如果它帮到了你
 
 यह प्लगइन [DSH प्लगइन परिवार](https://github.com/PerryLink) का हिस्सा है (40+ प्लगइन, सभी Apache-2.0)। अगर यह उपयोगी लगे, तो **एक स्टार दें** — इससे कोई सुविधा अनलॉक नहीं होती, पर अगला व्यक्ति इसे खोज में आसानी से पा लेता है।
@@ -112,44 +157,6 @@ dsh1024 plugin --profile web add dsh-autotier
 
 फिर harness शुरू करें (या पुनः आरंभ करें)। पंक्ति आपके
 `cordis.patch.yml` में जुड़ जाती है; अगले turn से रूटिंग शुरू हो जाती है।
-
-## इंस्टॉल और अनइंस्टॉल
-
-**npm चैनल**
-
-```bash
-npm i -g dsh1024
-dsh1024 plugin --profile web add dsh-autotier
-```
-
-**git चैनल**
-
-```bash
-git clone https://github.com/PerryLink/dsh-autotier.git
-cd dsh-autotier && pnpm install && pnpm run build
-dsh plugin --profile web add .
-```
-
-**वैकल्पिक preset प्रॉम्प्ट खंड।** इसके बिना भी राउटर काम करता है। मॉडल को यह
-बताने के लिए कि वह किस स्तर पर चल रहा है, *अपने* preset में एक पंक्ति जोड़ें
-(सटीक ब्लॉक `docs/preset-row.md` में है):
-
-```yaml
-- insert:
-    - id: autotier-prompt
-      name: '@deepseek-ai/dsh-system-prompt'
-      # sections: [...]  — देखें docs/preset-row.md
-```
-
-**अनइंस्टॉल**
-
-```bash
-dsh plugin --profile web remove dsh-autotier
-```
-
-पंक्ति, उसका कमांड, उसके टूल और सभी listeners प्लगइन के साथ हट जाते हैं।
-Plugins पेज से सहेजी गई कॉन्फ़िगरेशन सक्रिय profile patch में रहती है और उस
-profile की है, इस प्लगइन की नहीं; पंक्ति हटाने पर वह वहीं अछूती रहती है।
 
 ## कॉन्फ़िगरेशन
 

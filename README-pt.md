@@ -12,6 +12,11 @@
 
 [English](README.md) | [简体中文](README-zh.md) | [Español](README-es.md) | **Português** | [हिन्दी](README-hi.md)
 
+```sh
+dsh plugin --profile <name> add dsh-autotier
+```
+
+
 Roteamento automático por níveis de modelo para o DeepSeek Harness: entra uma
 instrução do usuário, sai uma decisão de nível — sem trocar de modelo à mão.
 
@@ -30,6 +35,45 @@ retorno.
 **📖 Base de conhecimento do ecossistema** — dados medidos, não marketing: [guia de desenvolvimento · dados de seleção · critérios de manutenção](https://perrylink.github.io/dsh-plugin-guide/).
 
 <!-- star-cta -->
+## Instalação e desinstalação
+
+**Canal npm**
+
+```bash
+npm i -g dsh1024
+dsh1024 plugin --profile web add dsh-autotier
+```
+
+**Canal git**
+
+```bash
+git clone https://github.com/PerryLink/dsh-autotier.git
+cd dsh-autotier && pnpm install && pnpm run build
+dsh plugin --profile web add .
+```
+
+**Seção de prompt opcional no preset.** O router funciona sem ela. Para que o
+modelo saiba em qual nível está, acrescente uma linha ao *seu* preset
+(`docs/preset-row.md` tem o bloco exato):
+
+```yaml
+- insert:
+    - id: autotier-prompt
+      name: '@deepseek-ai/dsh-system-prompt'
+      # sections: [...]  — veja docs/preset-row.md
+```
+
+**Desinstalação**
+
+```bash
+dsh plugin --profile web remove dsh-autotier
+```
+
+A linha, seu comando, suas ferramentas e seus listeners são removidos com o
+plugin. A configuração que um usuário salvou pela página Plugins vive no patch do
+perfil ativo e pertence àquele perfil, não a este plugin; remover a linha a deixa
+ali intacta.
+
 ## ⭐ 如果它帮到了你
 
 Este plugin faz parte da [família de plugins DSH](https://github.com/PerryLink) (mais de 40, todos Apache-2.0). Se for útil, **deixe uma estrela**: não desbloqueia nada, mas ajuda a próxima pessoa a encontrá-lo.
@@ -117,45 +161,6 @@ dsh1024 plugin --profile web add dsh-autotier
 
 Depois inicie (ou reinicie) o harness. A linha é acrescentada ao seu
 `cordis.patch.yml`; o roteamento começa no próximo turno.
-
-## Instalação e desinstalação
-
-**Canal npm**
-
-```bash
-npm i -g dsh1024
-dsh1024 plugin --profile web add dsh-autotier
-```
-
-**Canal git**
-
-```bash
-git clone https://github.com/PerryLink/dsh-autotier.git
-cd dsh-autotier && pnpm install && pnpm run build
-dsh plugin --profile web add .
-```
-
-**Seção de prompt opcional no preset.** O router funciona sem ela. Para que o
-modelo saiba em qual nível está, acrescente uma linha ao *seu* preset
-(`docs/preset-row.md` tem o bloco exato):
-
-```yaml
-- insert:
-    - id: autotier-prompt
-      name: '@deepseek-ai/dsh-system-prompt'
-      # sections: [...]  — veja docs/preset-row.md
-```
-
-**Desinstalação**
-
-```bash
-dsh plugin --profile web remove dsh-autotier
-```
-
-A linha, seu comando, suas ferramentas e seus listeners são removidos com o
-plugin. A configuração que um usuário salvou pela página Plugins vive no patch do
-perfil ativo e pertence àquele perfil, não a este plugin; remover a linha a deixa
-ali intacta.
 
 ## Configuração
 

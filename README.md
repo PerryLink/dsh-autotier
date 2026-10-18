@@ -1,5 +1,10 @@
 # dsh-autotier
 
+```sh
+dsh plugin --profile <name> add dsh-autotier
+```
+
+
 **English** | [简体中文](README-zh.md) | [Español](README-es.md) | [Português](README-pt.md) | [हिन्दी](README-hi.md)
 
 Automatic model-tier routing for DeepSeek Harness: one user instruction enters,
@@ -30,6 +35,47 @@ escalate to the strong tier with a TTL fallback.
 **📖 Ecosystem knowledge base** — measured data, not marketing: [plugin development guide · plugin-selection data · maintenance criteria](https://perrylink.github.io/dsh-plugin-guide/).
 
 <!-- star-cta -->
+## Install & uninstall
+
+**npm channel**
+
+```bash
+dsh plugin --profile web add dsh-autotier
+npm i -g dsh1024
+dsh1024 plugin --profile web add dsh-autotier
+```
+
+**git channel**
+
+```bash
+dsh plugin --profile web add github:PerryLink/dsh-autotier
+git clone https://github.com/PerryLink/dsh-autotier.git
+cd dsh-autotier && pnpm install && pnpm run build
+dsh plugin --profile web add .
+```
+
+**Optional preset prompt section.** The router works without it. To let the
+model know which tier it is running on, add one row to *your* agent preset
+(`docs/preset-row.md` has the exact block):
+
+```yaml
+- insert:
+    - id: autotier-prompt
+      name: '@deepseek-ai/dsh-system-prompt'
+      # sections: [...]  — see docs/preset-row.md
+```
+
+**Uninstall**
+
+```bash
+dsh plugin --profile web remove dsh-autotier
+```
+
+The row, its command, its tools and its listeners are all removed with the
+plugin. Configuration a user saved through the Plugins page lives in the active
+profile patch and belongs to that profile, not to this plugin; removing the row
+leaves it there untouched.
+
 ## ⭐ 如果它帮到了你
 
 这个插件是 [DSH 插件家族](https://github.com/PerryLink)的一员（40+ 个，全部 Apache-2.0）。如果你在用，**给个 star** —— 它不会解锁任何功能，但会让下一个人在搜索里更容易找到它。
@@ -119,47 +165,6 @@ dsh1024 plugin --profile web add dsh-autotier
 
 Then start (or restart) the harness. The row is appended to your profile's
 `cordis.patch.yml`; routing starts on the next turn with no further setup.
-
-## Install & uninstall
-
-**npm channel**
-
-```bash
-dsh plugin --profile web add dsh-autotier
-npm i -g dsh1024
-dsh1024 plugin --profile web add dsh-autotier
-```
-
-**git channel**
-
-```bash
-dsh plugin --profile web add github:PerryLink/dsh-autotier
-git clone https://github.com/PerryLink/dsh-autotier.git
-cd dsh-autotier && pnpm install && pnpm run build
-dsh plugin --profile web add .
-```
-
-**Optional preset prompt section.** The router works without it. To let the
-model know which tier it is running on, add one row to *your* agent preset
-(`docs/preset-row.md` has the exact block):
-
-```yaml
-- insert:
-    - id: autotier-prompt
-      name: '@deepseek-ai/dsh-system-prompt'
-      # sections: [...]  — see docs/preset-row.md
-```
-
-**Uninstall**
-
-```bash
-dsh plugin --profile web remove dsh-autotier
-```
-
-The row, its command, its tools and its listeners are all removed with the
-plugin. Configuration a user saved through the Plugins page lives in the active
-profile patch and belongs to that profile, not to this plugin; removing the row
-leaves it there untouched.
 
 ## Configuration
 

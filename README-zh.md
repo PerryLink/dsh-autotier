@@ -12,6 +12,11 @@
 
 [English](README.md) | **简体中文** | [Español](README-es.md) | [Português](README-pt.md) | [हिन्दी](README-hi.md)
 
+```sh
+dsh plugin --profile <name> add dsh-autotier
+```
+
+
 DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个档位决策出去 ——
 无需手动切换模型。
 
