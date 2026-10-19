@@ -198,6 +198,22 @@ tier_route
 
 *Observed from `README.md:248 (Tools & surfaces); tests/tools.spec.ts:96-109; src/tools.ts:80`*
 
+#### Failure branch
+
+**Input**
+
+~~~text
+resolveConfig({ tiers: { cheap: { provider: 'deepseek-official', model: 'deepseek-v4-pro', effort: 'high', followSession: false } } })
+~~~
+
+**Output**
+
+~~~text
+Error: dsh-autotier: config.tiers strong and cheap resolve to the same landing (deepseek-official/deepseek-v4-pro@high); tiering would be a no-op
+~~~
+
+*Observed from `plugins/dsh-autotier/src/config.ts:377-386; plugins/dsh-autotier/tests/config.spec.ts:87-92; plugins/dsh-autotier/README.md:208-209`*
+
 #### Brief examples
 
 - `tier_status`
