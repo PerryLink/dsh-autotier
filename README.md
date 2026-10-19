@@ -89,11 +89,11 @@ npm channel
 
 git channel
 
-![Terminal demo of dsh-autotier: dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-hero.png)
+![Workflow diagram for dsh-autotier: call → plugin → result.](docs/assets/dsh-autotier-flow.svg)
 
-![Animated terminal demo of dsh-autotier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.gif)
+*Workflow overview: call → plugin → result. The examples below use the real command surface.*
 
-*The same run, animated.*
+
 
 ## Compatibility
 
@@ -165,6 +165,19 @@ dsh1024 plugin --profile web add dsh-autotier
 
 Then start (or restart) the harness. The row is appended to your profile's
 `cordis.patch.yml`; routing starts on the next turn with no further setup.
+
+### Examples
+
+These are the plugin's real entry points; install once, then call one.
+
+#### Detailed example
+
+- `/tier`
+
+#### Brief examples
+
+- `tier_status`
+- `tier_route`
 
 ## Configuration
 

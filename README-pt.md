@@ -86,9 +86,10 @@ Canal npm
 
 Canal git
 
-![Demonstração de terminal do dsh-autotier: dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-hero.png)
+![Diagrama de fluxo de dsh-autotier: chamada → plugin → resultado.](docs/assets/dsh-autotier-flow.svg)
 
-![Animated terminal demo of dsh-autotier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.gif)
+*Visão geral do fluxo: chamada → plugin → resultado. Os exemplos abaixo usam a superfície real de comandos.*
+
 
 *A mesma execução, animada.*
 
@@ -161,6 +162,19 @@ dsh1024 plugin --profile web add dsh-autotier
 
 Depois inicie (ou reinicie) o harness. A linha é acrescentada ao seu
 `cordis.patch.yml`; o roteamento começa no próximo turno.
+
+### Exemplos
+
+São os pontos de entrada reais; instale e chame um.
+
+#### Exemplo detalhado
+
+- `/tier`
+
+#### Exemplos breves
+
+- `tier_status`
+- `tier_route`
 
 ## Configuração
 

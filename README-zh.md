@@ -43,9 +43,10 @@ npm 通道
 
 git 通道
 
-![dsh-autotier 终端演示：dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-hero.png)
+![dsh-autotier 工作流图：调用 → 插件 → 结果。](docs/assets/dsh-autotier-flow.svg)
 
-![Animated terminal demo of dsh-autotier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.gif)
+*工作流概览：调用 → 插件 → 结果。下面的示例使用实际命令面。*
+
 
 *同一次运行，动图版。*
 
@@ -141,6 +142,19 @@ dsh plugin --profile web remove dsh-autotier
 
 该行、settings 命名空间、命令、工具与全部监听器都随插件移除；除设置文档外
 不会在别处留下任何写入。
+
+### 示例
+
+以下为插件真实入口；安装后调用一个即可。
+
+#### 详细示例
+
+- `/tier`
+
+#### 简短示例
+
+- `tier_status`
+- `tier_route`
 
 ## 配置
 

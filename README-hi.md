@@ -86,9 +86,10 @@ npm चैनल
 
 git चैनल
 
-![dsh-autotier का टर्मिनल डेमो: dsh-autotier — install, then the documented tier defaults behind /tier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-hero.png)
+![dsh-autotier कार्यप्रवाह आरेख: कॉल → प्लगइन → परिणाम।](docs/assets/dsh-autotier-flow.svg)
 
-![Animated terminal demo of dsh-autotier](https://raw.githubusercontent.com/PerryLink/dsh-autotier/main/docs/assets/dsh-autotier-demo.gif)
+*कार्यप्रवाह: कॉल → प्लगइन → परिणाम। नीचे के उदाहरण वास्तविक कमांड सतह का उपयोग करते हैं।*
+
 
 *वही रन, एनिमेटेड।*
 
@@ -157,6 +158,19 @@ dsh1024 plugin --profile web add dsh-autotier
 
 फिर harness शुरू करें (या पुनः आरंभ करें)। पंक्ति आपके
 `cordis.patch.yml` में जुड़ जाती है; अगले turn से रूटिंग शुरू हो जाती है।
+
+### उदाहरण
+
+ये वास्तविक प्रवेश बिंदु हैं; इंस्टॉल के बाद एक चलाएँ।
+
+#### विस्तृत उदाहरण
+
+- `/tier`
+
+#### संक्षिप्त उदाहरण
+
+- `tier_status`
+- `tier_route`
 
 ## कॉन्फ़िगरेशन
 
