@@ -169,7 +169,31 @@ São os pontos de entrada reais; instale e chame um.
 
 #### Exemplo detalhado
 
-- `/tier`
+**Comando**
+
+~~~sh
+tier_route
+~~~
+
+**Entrada**
+
+~~~json
+{ "text": "Plan the migration of the storage layer end to end" }
+~~~
+
+**Saída**
+
+~~~text
+{
+  "tier": "strong",
+  "scenario": "planning",
+  "confidence": 0.97,
+  "fingerprint": "planning|0|0",
+  "reason": "explicit planning intent"
+}
+~~~
+
+*Observado em `README.md:248 (Tools & surfaces); tests/tools.spec.ts:96-109; src/tools.ts:80`*
 
 #### Exemplos breves
 

@@ -172,7 +172,31 @@ These are the plugin's real entry points; install once, then call one.
 
 #### Detailed example
 
-- `/tier`
+**Command**
+
+~~~sh
+tier_route
+~~~
+
+**Input**
+
+~~~json
+{ "text": "Plan the migration of the storage layer end to end" }
+~~~
+
+**Output**
+
+~~~text
+{
+  "tier": "strong",
+  "scenario": "planning",
+  "confidence": 0.97,
+  "fingerprint": "planning|0|0",
+  "reason": "explicit planning intent"
+}
+~~~
+
+*Observed from `README.md:248 (Tools & surfaces); tests/tools.spec.ts:96-109; src/tools.ts:80`*
 
 #### Brief examples
 

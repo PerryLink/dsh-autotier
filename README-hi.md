@@ -165,7 +165,31 @@ dsh1024 plugin --profile web add dsh-autotier
 
 #### विस्तृत उदाहरण
 
-- `/tier`
+**कमांड**
+
+~~~sh
+tier_route
+~~~
+
+**इनपुट**
+
+~~~json
+{ "text": "Plan the migration of the storage layer end to end" }
+~~~
+
+**आउटपुट**
+
+~~~text
+{
+  "tier": "strong",
+  "scenario": "planning",
+  "confidence": 0.97,
+  "fingerprint": "planning|0|0",
+  "reason": "explicit planning intent"
+}
+~~~
+
+*स्रोत `README.md:248 (Tools & surfaces); tests/tools.spec.ts:96-109; src/tools.ts:80`*
 
 #### संक्षिप्त उदाहरण
 

@@ -149,7 +149,31 @@ dsh plugin --profile web remove dsh-autotier
 
 #### 详细示例
 
-- `/tier`
+**命令**
+
+~~~sh
+tier_route
+~~~
+
+**输入**
+
+~~~json
+{ "text": "Plan the migration of the storage layer end to end" }
+~~~
+
+**输出**
+
+~~~text
+{
+  "tier": "strong",
+  "scenario": "planning",
+  "confidence": 0.97,
+  "fingerprint": "planning|0|0",
+  "reason": "explicit planning intent"
+}
+~~~
+
+*来源 `README.md:248 (Tools & surfaces); tests/tools.spec.ts:96-109; src/tools.ts:80`*
 
 #### 简短示例
 
