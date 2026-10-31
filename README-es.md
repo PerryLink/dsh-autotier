@@ -1,5 +1,12 @@
 # dsh-autotier
 
+> 🧊 **CONGELADO — 2026-10-31. Modo mantenimiento.** Sin nuevas funciones; solo correcciones de seguridad y dependencias.
+
+## Estado de mantenimiento: 🧊 CONGELADO
+
+Congelado el 2026-10-31 en modo mantenimiento. El paquete sigue instalable; solo se prevén correcciones de seguridad y dependencias.
+
+
 [![Gitee](https://img.shields.io/badge/Gitee-mirror-c71d23?logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![DSH plugin](https://img.shields.io/badge/dsh--plugin-✅-green)](https://github.com/topics/dsh-plugin)

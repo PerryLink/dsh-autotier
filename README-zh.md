@@ -1,5 +1,11 @@
 # dsh-autotier
 
+> 🧊 **2026-10-31 起冻结，维护模式。** 不再新增功能；只做安全与依赖修复。
+
+## 维护状态：🧊 已冻结
+
+2026-10-31 起进入维护模式。包仍可安装；只计划安全与依赖修复。
+
 [![Gitee](https://img.shields.io/badge/Gitee-mirror-c71d23?logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![DSH plugin](https://img.shields.io/badge/dsh--plugin-✅-green)](https://github.com/topics/dsh-plugin)

@@ -1,5 +1,12 @@
 # dsh-autotier
 
+> 🧊 **FROZEN — 2026-10-31. Maintenance mode.** No new features; security and dependency fixes only.
+
+## Maintenance status: 🧊 FROZEN
+
+Frozen on 2026-10-31 in maintenance mode. The package stays installable; only security and dependency fixes are planned.
+
+
 ```sh
 dsh plugin --profile <name> add dsh-autotier
 ```
