@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.20] - 2026-10-31
+
+### Changed
+
+- Docs: mark the package FROZEN on 2026-10-31 and add the maintenance-status section; no code change.
+
 ## [0.2.19] - 2026-10-18
 
 ### Changed
