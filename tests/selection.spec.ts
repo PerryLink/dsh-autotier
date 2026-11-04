@@ -10,6 +10,7 @@ import { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import AgentRegistry from '@deepseek-ai/dsh-agent'
 import SessionStore from '@deepseek-ai/dsh-session'
+import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import { describe, expect, it } from 'vitest'
 import { SelectionSync } from '../src/selection.ts'
 import { AgentStateStore } from '../src/state.ts'
@@ -43,6 +44,9 @@ class FakeDefaultModel {
 async function mount() {
   const ctx = new Context()
   await ctx.plugin(SessionStore)
+  // 0.2.2: `AgentRegistry` statically injects `sessionProjections`, so the
+  // registry must exist before it mounts or the agent registry never applies.
+  await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(AgentRegistry)
   const session = ctx.sessions.create()
   const agent = { id: session.id, session } as unknown as Agent
@@ -158,6 +162,8 @@ describe('SelectionSync', () => {
 
   it('is a no-op without the default-model service', async () => {
     const ctx = new Context()
+    await ctx.plugin(SessionStore)
+    await ctx.plugin(SessionProjectionRegistry)
     await ctx.plugin(AgentRegistry)
     try {
       const sync = new SelectionSync({ ctx, states: new AgentStateStore() })

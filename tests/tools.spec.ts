@@ -12,7 +12,8 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ToolRuntime from '@deepseek-ai/dsh-tools'
+import * as NativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native'
+import ToolRuntime, { type ToolExecutionResult } from '@deepseek-ai/dsh-tools'
 import { describe, expect, it } from 'vitest'
 import * as plugin from '../src/index.ts'
 import { MemorySettings } from './harness.ts'
@@ -23,6 +24,8 @@ async function mount() {
   await ctx.plugin(SessionStore)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  // 0.2.2: batch execution lives behind a pluggable executor.
+  await ctx.plugin(NativeToolExecutor)
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(MemorySettings)
   ctx.provide('llm', {} as never)
@@ -33,13 +36,20 @@ async function mount() {
     ctx,
     agent,
     fiber,
-    run: (name: string, args: unknown) => ctx.tools.execute({
-      callId: `call-${String(Math.random()).slice(2, 8)}` as never,
-      name,
-      arguments: args,
-      agent,
-      signal: new AbortController().signal,
-    }),
+    // 0.2.2: one call per batch, projected back to the flat result shape.
+    run: async (name: string, args: unknown): Promise<ToolExecutionResult> => {
+      const batch = await ctx.tools.execute({
+        calls: [{
+          type: 'tool-call',
+          id: `call-${String(Math.random()).slice(2, 8)}` as never,
+          name,
+          arguments: JSON.stringify(args),
+        }],
+        agent,
+        signal: new AbortController().signal,
+      })
+      return batch.results[0]!.result
+    },
     async dispose() {
       await ctx.fiber.dispose()
     },

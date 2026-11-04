@@ -1,10 +1,52 @@
 # Changelog
 
-## [0.2.20] - 2026-10-31
+## [Unreleased]
 
 ### Changed
 
-- Docs: mark the package FROZEN on 2026-10-31 and add the maintenance-status section; no code change.
+- Track the host 0.2.2 line: the `@deepseek-ai/dsh-*` devDependencies move from
+  `0.2.1-rc.2` to `0.2.2-rc.1`; `@deepseek-ai/cordis` -> `^4.1.0`,
+  `cordis-plugin-include` / `cordis-plugin-loader` -> `^1.1.0`, and
+  `@deepseek-ai/schemastery` -> `~3.19.0` so one copy resolves against
+  `dsh-llm` 0.2.2. Add `@deepseek-ai/dsh-package-manifest` (`dsh-llm` 0.2.2's
+  published types import it without declaring it) and
+  `@deepseek-ai/dsh-tool-executor-native` (0.2.2 moved batch execution behind a
+  pluggable executor). `engines.dsh` appends `>=0.2.2-0 <0.3.0`;
+  `engines.node` becomes `^22.19.0 || >=24.9.0`. The manifest now names
+  `0.2.2-rc.1` in `dsh.compatibility.dshReleases` and
+  `dshWorkshop.compatibility.dshVersions`.
+- **Routing moves to the 0.2.2 model-selection seam.** 0.2.2 fixes a step's
+  provider, model, and reasoning effort when the step is prepared and rejects an
+  `agent/request` listener that changes any of them (`use agent.model.select()`
+  before step preparation). The tier therefore lands on the admitted user input
+  through the durable `agent.model.select()` seam. Consequences: a failure
+  escalation or fallback record applies to the next admitted input (a step and
+  its retries keep their route); a veto or pre-flight degradation observed
+  during a request applies to the next step; and the `agent/request` listener
+  is read-only on 0.2.2 (it still reports a request configuration changed by
+  another layer). The 0.2.1 line has no `Agent.model`, so there the same
+  listener keeps the original request-time routing path.
+- The English README documents the 0.2.2 seam and the `0.2.2-rc.1` compatibility
+  row. The translated READMEs are not re-translated in this change.
+
+### Fixed
+
+- `tests/tools.spec.ts`, `tests/tier-remote.spec.ts`, and `tests/guard.spec.ts`
+  use the 0.2.2 batch `tools.execute()` shape (`{ calls, agent, signal }`) and
+  project `batch.results[0].result`; the test harnesses mount
+  `@deepseek-ai/dsh-tool-executor-native` after `ToolRuntime`, and the Loader
+  composition carries that row.
+- `tests/selection.spec.ts` mounts `@deepseek-ai/dsh-session-projection` before
+  `AgentRegistry`, which 0.2.2 statically injects; `tests/loop-integration`
+  relies on the agent-loop testkit mounting it.
+- `tests/harness.ts` reads the parsed row from `fiber.effectiveConfig`: cordis
+  4.1.0 renamed the parsed config there, and `fiber.config` is now the raw input.
+- `registerTierProjection` awaits the now-asynchronous
+  `sessionProjections.register()` handle and disposes through it.
+- `scripts/loader-runner.mjs` awaits every Loader row fiber after
+  `loader.await()`: cordis 4.1.0 settles a failed row on its fiber instead of
+  rejecting the await, so the runner keeps failing loud on an invalid
+  composition instead of reporting a missing service.
 
 ## [0.2.19] - 2026-10-18
 

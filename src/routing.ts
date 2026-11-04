@@ -2,19 +2,24 @@
  * The routing wiring: the listeners that turn a classification into a tier, and
  * the failure/fallback handlers that keep a cheap run alive.
  *
- * Every registration is an effect on the plugin fiber. The request listener is
- * registered at load time on the root scope with `{ prepend: true }` so it wraps
- * the official `installModelSelection` listener (registered later, during agent
- * setup) and its replacement wins. It always awaits `next()` exactly once and
- * never returns `undefined`: the inner listener destructures the result without
- * a guard.
+ * 0.2.2 fixes a step's provider, model, and reasoning effort when the step is
+ * prepared (`agent.model.current()`), before the `agent/request` waterfall, and
+ * rejects a request listener that changes any of the three. The tier therefore
+ * lands on the admitted user input through the durable `agent.model.select()`
+ * seam. The request listener is kept, read-only, to report a foreign router and
+ * to offer the landing on `autotier/route`; a veto or a pre-flight degradation
+ * is recorded as the next step's selection, the earliest change the host allows.
+ * On the earlier 0.2.1 line (no `Agent.model`) the same listener keeps the
+ * original behavior: it rewrites the proposed request configuration.
+ *
+ * Every registration is an effect on the plugin fiber.
  *
  * @module dsh-autotier/routing
  */
 
 import type { Context } from '@deepseek-ai/cordis'
 import type { Agent } from '@deepseek-ai/dsh-agent'
-import type { LlmCallConfig } from '@deepseek-ai/dsh-llm'
+import { ReasoningEffortId, type LlmCallConfig } from '@deepseek-ai/dsh-llm'
 // Type-only import for the `plan/mode` SessionEventMap augmentation.
 import type {} from '@deepseek-ai/dsh-plan-mode'
 import type { Session, SessionEvent } from '@deepseek-ai/dsh-session'
@@ -213,12 +218,23 @@ export class AutotierRouter {
     // input; every step of the turn reuses it.
     const probe = this.service.posteriors().verdict(state.decision.fingerprint)
     state.probe = probe ?? undefined
-    if (this.modeFor(agent) !== 'auto') return
-    const rule = evaluateRules(this.service.rules(), input)
-    if (shouldPlan(state.decision) && !state.planActive) this.enterPlanMode(agent)
-    if (judgeNeeded(config, state, state.decision, rule, Date.now())) {
-      this.startJudge(agent, config, text, state.decision)
+    // `off` and `delegated` keep the session's own selection untouched. A
+    // manual `strong`/`cheap` override skips plan mode and the judge but still
+    // has to land its tier on the admitted input.
+    const mode = this.modeFor(agent)
+    if (mode === 'off' || mode === 'delegated') return
+    if (mode === 'auto') {
+      const rule = evaluateRules(this.service.rules(), input)
+      if (shouldPlan(state.decision) && !state.planActive) this.enterPlanMode(agent)
+      if (judgeNeeded(config, state, state.decision, rule, Date.now())) {
+        this.startJudge(agent, config, text, state.decision)
+      }
     }
+    // 0.2.2: the step's provider/model/effort are fixed when the step is
+    // prepared, so the tier must land now — on the admitted input — instead of
+    // inside the (now read-only) request waterfall. The earlier 0.2.1 line has
+    // no `agent.model`; there the request listener still rewrites the config.
+    if (this.hasModelSelection(agent)) this.selectAdmittedRoute(agent)
   }
 
   /** Fire the judge without blocking the emit dispatch. */
@@ -376,43 +392,37 @@ export class AutotierRouter {
     return { provider: entry.provider, model: entry.model }
   }
 
-  /** Resolve the tier for this step and apply it to the proposed configuration. */
-  private async onRequest(
-    agent: Agent,
-    turn: number,
-    step: number,
-    next: () => Promise<LlmCallConfig>,
-  ): Promise<LlmCallConfig> {
-    const base = await next()
-    try {
-      return await this.routeRequest(agent, turn, step, base)
-    } catch (error) {
-      // The request seam must never break a turn: a routing defect degrades to
-      // the session's own configuration and is reported loudly.
-      this.ctx.logger.error('dsh-autotier: routing failed, using the session configuration: %o', error)
-      return base
-    }
-  }
-
-  /** The routing body, separated so one try/catch guards the whole seam. */
-  private async routeRequest(agent: Agent, turn: number, step: number, base: LlmCallConfig): Promise<LlmCallConfig> {
-    const mode = this.modeFor(agent)
-    if (mode === 'off' || mode === 'delegated') return base
+  /**
+   * Land the tier for the user input just admitted.
+   *
+   * 0.2.2 fixes provider, model, and reasoning effort when a step is prepared —
+   * before the `agent/request` waterfall runs — so a request listener can no
+   * longer reroute a turn; changing the selection there is rejected and fails
+   * the step. The tier therefore lands here, on the admitted input, through the
+   * durable `agent.model.select()` seam: every step of this turn (including a
+   * tool continuation) runs on that selection, and an escalation or fallback
+   * record computed from a failure applies to the next admitted input.
+   */
+  private selectAdmittedRoute(agent: Agent): void {
     const state = this.states.for(agent)
     const config = this.service.config()
     const now = Date.now()
-    clearExpiredEscalation(state, now)
+    const decision = this.decideFromInput(config, state, now)
+    if (decision === undefined) return
+    const route = this.routeFor(decision.tier, config, state.decision, state, now)
+    this.recordLanding(agent, decision, route)
+  }
+
+  /**
+   * Turn the newest classification plus runtime state into a tier decision.
+   * Pure apart from the attempt-first bookkeeping (`verified` / `reviewOwedFor`).
+   */
+  private decideFromInput(config: ResolvedConfig, state: RouteState, now: number): Decision | undefined {
     const intent = state.decision
-    if (intent === undefined) return base
+    if (intent === undefined) return undefined
+    clearExpiredEscalation(state, now)
     const rule = state.input === undefined ? null : evaluateRules(this.service.rules(), state.input)
-    let decision: Decision = decideTier({
-      config,
-      state,
-      intent,
-      rule,
-      override: state.override,
-      now,
-    })
+    let decision: Decision = decideTier({ config, state, intent, rule, override: state.override, now })
     // Attempt-first band: only a classifier-driven verdict may be downgraded —
     // an explicit rule, plan mode, escalation or manual override wins outright.
     const classifierDriven = decision.source === 'judge' || decision.source === 'default'
@@ -437,6 +447,103 @@ export class AutotierRouter {
         confidence: 1,
       }
     }
+    return decision
+  }
+
+  /** Record one landing as the next step's model selection and as runtime state. */
+  private recordLanding(agent: Agent, decision: Decision, route: TierRoute): void {
+    const state = this.states.for(agent)
+    this.selectModel(agent, route)
+    state.appliedRoute = route
+    state.lastProviderModel = `${route.provider}/${route.model}`
+    this.selection.noteRoute(route)
+    if (state.appliedTier !== decision.tier) {
+      const from = state.appliedTier
+      state.appliedTier = decision.tier
+      state.appliedSource = decision.source
+      this.ctx.emit('autotier/tier-changed', {
+        agent,
+        from,
+        to: decision.tier,
+        source: decision.source,
+        reason: decision.reason,
+        route,
+      })
+    } else {
+      state.appliedSource = decision.source
+    }
+    this.ctx.logger.debug('dsh-autotier: tier=%s source=%s (%s)', decision.tier, decision.source, decision.reason)
+  }
+
+  /** Record one landing as the agent's next-step model selection (the 0.2.2 seam). */
+  private selectModel(agent: Agent, route: TierRoute): void {
+    const model = (agent as { model?: { select(selection: unknown): void } }).model
+    if (model === undefined) return
+    try {
+      model.select({
+        provider: route.provider,
+        model: route.model,
+        ...route.effort === undefined ? {} : { reasoningEffort: ReasoningEffortId(route.effort) },
+      })
+    } catch (error) {
+      this.ctx.logger.error('dsh-autotier: could not record the model selection: %o', error)
+    }
+  }
+
+  /**
+   * Observe one prepared request without changing it.
+   *
+   * `agent/request` is deprecated in 0.2.2 and must preserve provider, model,
+   * and reasoning effort, so this listener only reads: it reports a foreign
+   * router that rewrote the configuration and offers the landing on
+   * `autotier/route`. A veto or a pre-flight degradation is recorded as the
+   * NEXT step's selection, and the request returns unchanged.
+   */
+  private async onRequest(
+    agent: Agent,
+    turn: number,
+    step: number,
+    next: () => Promise<LlmCallConfig>,
+  ): Promise<LlmCallConfig> {
+    const base = await next()
+    // The earlier 0.2.1 line has no step-fixed selection: there this listener
+    // keeps its original job and rewrites the proposed configuration.
+    if (!this.hasModelSelection(agent)) {
+      try {
+        return await this.routeLegacy(agent, turn, step, base)
+      } catch (error) {
+        this.ctx.logger.error('dsh-autotier: routing failed, using the session configuration: %o', error)
+        return base
+      }
+    }
+    try {
+      await this.observeRequest(agent, turn, step, base)
+    } catch (error) {
+      // The request seam must never break a turn.
+      this.ctx.logger.error('dsh-autotier: request observation failed: %o', error)
+    }
+    return base
+  }
+
+  /** Whether the host exposes the 0.2.2 step-fixed model selection. */
+  private hasModelSelection(agent: Agent): boolean {
+    return (agent as { model?: unknown }).model !== undefined
+  }
+
+  /**
+   * The 0.2.1 request-time routing path: decide, offer the veto, pre-flight, and
+   * return the replacement configuration (`resolveRoute` preserves the sampling
+   * scalars the session already chose).
+   */
+  private async routeLegacy(agent: Agent, turn: number, step: number, base: LlmCallConfig): Promise<LlmCallConfig> {
+    const mode = this.modeFor(agent)
+    if (mode === 'off' || mode === 'delegated') return base
+    const state = this.states.for(agent)
+    const config = this.service.config()
+    const now = Date.now()
+    const decision = this.decideFromInput(config, state, now)
+    const intent = state.decision
+    if (decision === undefined || intent === undefined) return base
     const proposal: RouteProposal = {
       agent,
       turn,
@@ -451,9 +558,6 @@ export class AutotierRouter {
     const source: RouteSource = veto === undefined || veto === null ? decision.source : 'manual'
     const reason = veto === undefined || veto === null ? decision.reason : `veto: ${veto.reason}`
     const route = this.routeFor(tier, config, intent, state, now, base)
-    // Pre-flight the landing against the live registry: an unregistered
-    // provider or an effort the target model rejects degrades here instead of
-    // failing the request.
     const safeRoute = await this.preflight.sanitize(route, tier === 'strong' ? config.tiers.strong : config.tiers.cheap)
     const applied = resolveRoute(base, safeRoute)
     // Multi-router detection: the loop rebuilds each request from the last
@@ -468,25 +572,85 @@ export class AutotierRouter {
         baseKey,
       )
     }
-    state.lastProviderModel = `${safeRoute.provider}/${safeRoute.model}`
-    this.selection.noteRoute(safeRoute)
-    if (state.appliedTier !== tier) {
-      const from = state.appliedTier
-      state.appliedTier = tier
-      state.appliedSource = source
-      this.ctx.emit('autotier/tier-changed', { agent, from, to: tier, source, reason, route })
-    } else {
-      state.appliedSource = source
+    this.recordLanding(agent, { tier, source, reason, confidence: decision.confidence }, safeRoute)
+    return applied
+  }
+
+  /** The read-only half of the request seam (see {@link onRequest}). */
+  private async observeRequest(agent: Agent, turn: number, step: number, base: LlmCallConfig): Promise<void> {
+    const mode = this.modeFor(agent)
+    if (mode === 'off' || mode === 'delegated') return
+    const state = this.states.for(agent)
+    const selection = this.currentSelection(agent)
+    // Multi-router detection: the loop prepares each request from the recorded
+    // selection, so a different provider/model means a layer outside this
+    // plugin owns the request configuration.
+    if (selection !== undefined && (base.provider !== selection.provider || base.model !== selection.model) && !state.coexistenceWarned) {
+      state.coexistenceWarned = true
+      this.ctx.logger.warn(
+        'dsh-autotier: the request configuration was changed outside this plugin (selected %s/%s, saw %s/%s); another router may be composed. /tier status reports this.',
+        selection.provider,
+        selection.model,
+        base.provider,
+        base.model,
+      )
     }
-    this.ctx.logger.debug(
-      'dsh-autotier: turn=%d step=%d tier=%s source=%s (%s)',
+    const landing = state.appliedRoute
+    const tier = state.appliedTier
+    if (landing === undefined || tier === undefined) return
+    const proposal: RouteProposal = {
+      agent,
       turn,
       step,
       tier,
-      source,
-      reason,
+      source: state.appliedSource ?? 'default',
+      reason: state.decision?.reasons.join('; ') ?? '',
+      confidence: state.decision?.confidence ?? 1,
+    }
+    const veto = await this.serialVeto(proposal)
+    const config = this.service.config()
+    const now = Date.now()
+    if (veto !== undefined && veto !== null) {
+      const route = this.routeFor(veto.tier, config, state.decision, state, now)
+      this.recordLanding(
+        agent,
+        { tier: veto.tier, source: 'manual', reason: `veto: ${veto.reason}`, confidence: 1 },
+        route,
+      )
+      return
+    }
+    // Pre-flight the recorded landing against the live registry: an
+    // unregistered provider or an effort the target model rejects is corrected
+    // for the next step. This step's selection was fixed before this hook ran.
+    const safeRoute = await this.preflight.sanitize(landing, tier === 'strong' ? config.tiers.strong : config.tiers.cheap)
+    if (safeRoute.provider === landing.provider && safeRoute.model === landing.model && safeRoute.effort === landing.effort) return
+    this.recordLanding(
+      agent,
+      {
+        tier,
+        source: state.appliedSource ?? 'default',
+        reason: state.decision?.reasons.join('; ') ?? '',
+        confidence: state.decision?.confidence ?? 1,
+      },
+      safeRoute,
     )
-    return applied
+  }
+
+  /** The selection the loop prepares the current step from. */
+  private currentSelection(agent: Agent): { provider: string; model: string; reasoningEffort?: string } | undefined {
+    const model = (agent as { model?: { current(): { provider: string; model: string; reasoningEffort?: unknown } | undefined } }).model
+    if (model === undefined) return undefined
+    try {
+      const selection = model.current()
+      if (selection === undefined) return undefined
+      return {
+        provider: selection.provider,
+        model: selection.model,
+        ...selection.reasoningEffort === undefined ? {} : { reasoningEffort: String(selection.reasoningEffort) },
+      }
+    } catch {
+      return undefined
+    }
   }
 
   /** Count failures and escalate on the configured signature recurrence. */
@@ -560,14 +724,29 @@ export class AutotierRouter {
     }
     const now = Date.now()
     if (noteFallback(state, tier, chain.length, config, now)) {
+      const code = String(typeof failure.code === 'string' ? failure.code : `status ${String(failure.status ?? '?')}`)
       this.ctx.logger.warn(
         'dsh-autotier: provider "%s" failed with %s; switching to fallback entry %d of the %s tier',
         provider,
-        String(typeof failure.code === 'string' ? failure.code : `status ${String(failure.status ?? '?')}`),
+        code,
         (state.fallback?.index ?? 0) + 1,
         tier,
       )
-      return { kind: 'retry' }
+      // 0.2.2: the failed step's selection is fixed, so a retry would dispatch
+      // the same failing route again. Record the chain entry for the next
+      // admitted input and let the failure propagate instead.
+      const route = this.routeFor(tier, config, state.decision, state, now)
+      this.recordLanding(
+        agent,
+        {
+          tier,
+          source: state.appliedSource ?? 'default',
+          reason: `fallback after ${code}`,
+          confidence: state.decision?.confidence ?? 1,
+        },
+        route,
+      )
+      return next()
     }
     return next()
   }

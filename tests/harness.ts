@@ -19,6 +19,7 @@ import type { Fiber, Plugin } from '@deepseek-ai/cordis'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import SessionStore from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
+import * as NativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native'
 import ToolRuntime from '@deepseek-ai/dsh-tools'
 import * as autotier from '../src/index.ts'
 import type { AutotierConfig, VolatileConfig } from '../src/index.ts'
@@ -89,6 +90,9 @@ export async function createHarness(config: AutotierConfig = {}): Promise<Autoti
   await ctx.plugin(SessionStore)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  // 0.2.2: `ctx.tools.execute()` takes a whole batch and raw execution lives
+  // behind a pluggable executor; the native one keeps the tool bodies dispatchable.
+  await ctx.plugin(NativeToolExecutor)
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(MemorySettings)
   const settings = ctx.get('settings') as MemorySettings
@@ -100,7 +104,10 @@ export async function createHarness(config: AutotierConfig = {}): Promise<Autoti
     ctx,
     pluginFiber,
     settings,
-    liveConfig: pluginFiber.config as VolatileConfig,
+    // 0.2.2 (cordis 4.1.0): `fiber.config` is the RAW plugin input; the parsed
+    // row — the object holding the live volatile references — is the fiber's
+    // effective config.
+    liveConfig: pluginFiber.effectiveConfig as VolatileConfig,
     async dispose(): Promise<void> {
       await ctx.fiber.dispose()
     },

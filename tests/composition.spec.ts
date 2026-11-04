@@ -41,6 +41,9 @@ function configFor(configLines: string[] = []): string {
     "- name: '@deepseek-ai/dsh-session'",
     "- name: '@deepseek-ai/dsh-system-prompt'",
     "- name: '@deepseek-ai/dsh-tools'",
+    // 0.2.2: batch execution lives behind a pluggable executor, so the composed
+    // profile must carry the executor row or every dispatch would find no provider.
+    "- name: '@deepseek-ai/dsh-tool-executor-native'",
     "- name: '@deepseek-ai/dsh-commands'",
     "- name: '@deepseek-ai/dsh-llm'",
     `- name: ${JSON.stringify(pathToFileURL(builtEntry).href)}`,

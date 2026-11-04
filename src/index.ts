@@ -151,7 +151,9 @@ export async function apply(ctx: Context, config: AutotierConfig | VolatileConfi
   // Settings: claim this instance's page policy and follow live edits. Replaces
   // the removed `ctx.settings.register('autotier', Config, { base, validate })`.
   bindSettings({ ctx, config: config as VolatileConfig, service })
-  registerTierProjection(ctx)
+  // 0.2.2: projection registration is asynchronous; await the ready handle so
+  // the projection is live before the router and the tools start using it.
+  await registerTierProjection(ctx)
   const states = new AgentStateStore()
   new AutotierRouter({ ctx, service, states })
   registerGuardHook({ ctx, service, states })

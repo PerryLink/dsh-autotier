@@ -285,6 +285,10 @@ describe('real AgentLoop routing', () => {
     })
     try {
       harness.adapter.failures.set('cheap-model', 'UNKNOWN_MODEL')
+      // 0.2.2 fixes a step's provider/model when the step is prepared, so the
+      // failed turn cannot be retried onto the chain entry; the recorded
+      // fallback applies to the next admitted input instead.
+      await say(harness, 'Hello!')
       await say(harness, 'Hello!')
       expect(harness.adapter.calls.map(call => call.model)).toContain('fallback-model')
       expect(harness.adapter.calls.at(-1)?.model).toBe('fallback-model')

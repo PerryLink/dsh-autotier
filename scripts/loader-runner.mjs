@@ -57,6 +57,11 @@ try {
     config: { path: pathToFileURL(configPath).href },
   })
   await ctx.loader.await()
+  // cordis 4.1.0 no longer rejects loader.await() when a row fails to apply:
+  // the error settles on that row's fiber. Await every row fiber so an invalid
+  // config still fails loud here (the invalid-config composition cases assert a
+  // non-zero exit) instead of surfacing as a missing service. (0.2.2 fix.)
+  for (const entry of ctx.loader.entries()) await entry.fiber
 
   // The plugin publishes the autotier service; its status pins that the Loader
   // applied the file's config (the mode comes from the row's config).

@@ -44,6 +44,8 @@ export interface TierProjectionState {
  * would fail to type-check). The runtime contract is the same.
  */
 interface ProjectionRegistryLike {
+  // 0.2.2: registration is asynchronous — it yields a ready handle whose
+  // readers are only sound after the awaited handoff.
   register(definition: {
     key: string
     stateVersion: number
@@ -54,8 +56,14 @@ interface ProjectionRegistryLike {
       viewSchema: { parse(value: unknown): unknown }
       view(state: TierProjectionState): TierProjectionState
     }
-  }): () => void
+  }): Promise<ProjectionHandleLike>
+  /** @deprecated 0.2.2 keeps the reader for compatibility; prefer the handle. */
   stateOf(session: Session, key: string): TierProjectionState | undefined
+}
+
+/** The ready-handle face of one 0.2.2 projection registration. */
+interface ProjectionHandleLike {
+  dispose(): Promise<void> | void
 }
 
 /** Minimal zod-compatible schemas for the projection state and wire view. */
@@ -73,16 +81,21 @@ const projectionSchema = {
 
 /**
  * Register the tier projection when the registry is composed.
+ *
+ * 0.2.2 made `register()` asynchronous: it resolves to a ready handle only after
+ * the registration handoff, so callers must await it before publishing any
+ * consumer that reads the projection.
+ *
  * @param ctx - the plugin context; the registration rides its fiber.
  * @returns the registration disposer, or undefined when the registry is absent.
  */
-export function registerTierProjection(ctx: Context): (() => void) | undefined {
+export async function registerTierProjection(ctx: Context): Promise<(() => void) | undefined> {
   const registry = ctx.get('sessionProjections') as unknown as ProjectionRegistryLike | undefined
   if (registry === undefined) {
     ctx.logger.warn('dsh-autotier: sessionProjections is absent; the replayable tier projection is disabled')
     return undefined
   }
-  return registry.register({
+  const handle = await registry.register({
     key: TIER_PROJECTION_KEY,
     stateVersion: 1,
     stateSchema: projectionSchema,
@@ -111,6 +124,7 @@ export function registerTierProjection(ctx: Context): (() => void) | undefined {
       view: state => state,
     },
   })
+  return () => { void handle.dispose() }
 }
 
 /** The per-agent runtime state store. */

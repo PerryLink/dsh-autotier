@@ -10,7 +10,7 @@
 import type { ResolvedConfig } from './config.ts'
 import type { IntentInput, IntentResult, RuleHit } from './intent.ts'
 import { advanceFallback, fallbackActive, type FallbackRecord } from './tiers.ts'
-import type { RouteSource, RoutingMode, TierId } from './types.ts'
+import type { RouteSource, RoutingMode, TierId, TierRoute } from './types.ts'
 
 /** Mutable per-agent routing state. Never persisted: it is per-process runtime. */
 export interface RouteState {
@@ -44,6 +44,8 @@ export interface RouteState {
   lastDenial: string
   /** `provider/model` this plugin last applied, for multi-router detection. */
   lastProviderModel: string | undefined
+  /** The landing recorded as the next step's model selection (0.2.2 seam). */
+  appliedRoute: TierRoute | undefined
   /** Whether another layer was already reported for this agent. */
   coexistenceWarned: boolean
 }
@@ -66,6 +68,7 @@ export function createRouteState(): RouteState {
     denials: 0,
     lastDenial: '',
     lastProviderModel: undefined,
+    appliedRoute: undefined,
     coexistenceWarned: false,
   }
 }

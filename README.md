@@ -110,7 +110,8 @@ git channel
 | `@deepseek-ai/dsh` `0.1.5-rc.2` | no longer supported; the `settings.register` / `settings/updated` contract it exposes was removed upstream |
 | `@deepseek-ai/dsh` `0.1.6-alpha.2` | no longer supported; same removal, first line to ship `SettingsForms` |
 | `@deepseek-ai/dsh` `0.1.7-rc.2` | compatible; verified on the 0.1.7 line |
-| `@deepseek-ai/dsh` `0.2.1-rc.2` | **required**; verified against the matching checkout (`typecheck`) and the published packages (`typecheck:ci`, 214 tests) |
+| `@deepseek-ai/dsh` `0.2.2-rc.1` | **required**; verified against the published packages (`typecheck:ci`, 214 tests) and a real Loader composition |
+| `@deepseek-ai/dsh` `0.2.1-rc.2` | compatible; routing uses the `agent/request` waterfall, which that line still allows to change the route |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer baseline |
 
 Peer ranges name all published lines explicitly (`>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0 || >=0.2.1-0 <0.3.0`), because a semver range whose only prerelease
@@ -140,10 +141,13 @@ optional and only makes the router's decisions visible to the model (see
   (message text, tool names, image presence, conversation length). The
   zero-token rule layer decides when it is confident; only a low-confidence turn
   calls the cheap judge model, and never on a cooldown.
-- **Tier landing on the official seam** — the decision is applied on the
-  `agent/request` waterfall by returning a replacement provider/model/effort
-  triple. Sampling scalars the session already chose (`temperature`, `maxTokens`,
-  `stop`) are preserved.
+- **Tier landing on the official seam** — on the 0.2.2 line the decision is
+  recorded before each step is prepared through `agent.model.select()`, the
+  provider/model/effort triple the host now fixes per step; a failure
+  escalation or fallback record therefore lands on the next admitted input.
+  On the 0.2.1 line the decision is applied on the `agent/request` waterfall by
+  returning a replacement triple, and the sampling scalars the session already
+  chose (`temperature`, `maxTokens`, `stop`) are preserved.
 - **Plan-mode handoff** — a complex instruction enters plan mode on the strong
   tier; leaving plan mode drops back to the cheap tier for implementation.
 - **High-risk guard** — while the cheap tier executes, destructive commands
@@ -156,7 +160,9 @@ optional and only makes the router's decisions visible to the model (see
   `/tier off`) stops routing for a session that must keep its own model.
 - **`ctx.autotier` service** — a small read surface (`status`) plus the
   `autotier/route` veto waterfall and `autotier/tier-changed` event, so other
-  plugins can observe or override a decision.
+  plugins can observe or override a decision. On 0.2.2 a veto recorded during a
+  request applies to the next step, because the current step's route is fixed
+  before the veto is offered.
 
 ## Quick start
 
@@ -374,7 +380,7 @@ plus the Loader's `loader/volatile-update` event.
 
 ## Interoperability with other DSH plugins
 
-Verified against **DSH `0.2.0-rc.2`** (the runtime this README ships for) and the high-star plugin set surveyed on 2026-10-05.
+Verified against **DSH `0.2.2-rc.1`** and the high-star plugin set surveyed on 2026-10-05.
 
 This plugin **does not interfere** with other plugins, including the widely installed high-star ones:
 
@@ -385,8 +391,8 @@ This plugin **does not interfere** with other plugins, including the widely inst
 - **No patch-layer collision.** The bundle patch only `insert`s its own row; it never overrides a built-in row's `config`.
 - **No global mutation.** It does not patch prototypes, rewrite `process.env`, or replace the global fetch dispatcher.
 
-**Shared event listeners are non-interfering by construction.** It observes the ordering-sensitive events `agent/created`, `agent/request`, `agent/request-error`, `tools/pre-execute` with `ctx.on()` — Cordis's broadcast registration, where every listener runs and none can starve another. **Every listener here delegates through `next()`**, so the chain is never short-circuited, and a mutation is applied to the value `next()` produced rather than returned in its place:
-  - `agent/request` — also used by `dsh-agent-teams` (1923★), which short-circuits by throwing without calling `next()`.
+**Shared event listeners are non-interfering by construction.** It observes the ordering-sensitive events `agent/created`, `agent/request`, `agent/request-error`, `tools/pre-execute` with `ctx.on()` — Cordis's broadcast registration, where every listener runs and none can starve another. **Every listener here delegates through `next()`**, so the chain is never short-circuited:
+  - `agent/request` — read-only on 0.2.2 (the host fixes the step's route before the waterfall): it reports a router that rewrote the configuration and offers the landing on `autotier/route`; on 0.2.1 it applies the replacement. `dsh-agent-teams` (1923★) also listens and short-circuits by throwing without calling `next()`.
   - `tools/pre-execute` — also used by `cc-safety-net` (1576★).
 
 Static evidence: `dsh-plugin-doctor` K10–K13 report `pass` for every check on this repository.

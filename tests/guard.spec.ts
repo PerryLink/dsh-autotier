@@ -10,7 +10,8 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import CommandRuntime from '@deepseek-ai/dsh-commands'
 import SessionStore, { SessionId } from '@deepseek-ai/dsh-session'
 import SystemPrompt from '@deepseek-ai/dsh-system-prompt'
-import ToolRuntime, { defineTool } from '@deepseek-ai/dsh-tools'
+import * as NativeToolExecutor from '@deepseek-ai/dsh-tool-executor-native'
+import ToolRuntime, { defineTool, type ToolExecutionResult } from '@deepseek-ai/dsh-tools'
 import { describe, expect, it } from 'vitest'
 import { resolveConfig } from '../src/config.ts'
 import { evaluateToolCall, redactSnippet } from '../src/guard.ts'
@@ -120,6 +121,9 @@ async function mountGuard(config: Parameters<typeof plugin.apply>[1] = {}) {
   await ctx.plugin(SessionStore)
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
+  // 0.2.2: batch execution lives behind a pluggable executor, so the harness
+  // mounts the native one or every dispatch would find no provider.
+  await ctx.plugin(NativeToolExecutor)
   await ctx.plugin(CommandRuntime)
   await ctx.plugin(GuardSettings)
   ctx.provide('llm', {} as never)
@@ -154,17 +158,30 @@ async function mountGuard(config: Parameters<typeof plugin.apply>[1] = {}) {
 /** Minimal settings service for the guard harness (see `harness.ts`). */
 class GuardSettings extends MemorySettings {}
 
+/**
+ * Dispatch one real tool call through the 0.2.2 batch executor and project its
+ * result, so the assertions below keep the flat `ToolExecutionResult` shape.
+ */
+async function callTool(
+  harness: Awaited<ReturnType<typeof mountGuard>>,
+  id: string,
+  name: string,
+  args: unknown,
+  signal: AbortSignal,
+): Promise<ToolExecutionResult> {
+  const batch = await harness.ctx.tools.execute({
+    calls: [{ type: 'tool-call', id: id as never, name, arguments: JSON.stringify(args) }],
+    agent: harness.agent,
+    signal,
+  })
+  return batch.results[0]!.result
+}
+
 describe('tools/pre-execute waterfall', () => {
   it('denies a high-impact command before the tool body runs', async () => {
     const harness = await mountGuard()
     try {
-      const result = await harness.ctx.tools.execute({
-        callId: 'c1' as never,
-        name: 'run_shell',
-        arguments: { command: 'rm -rf /' },
-        agent: harness.agent,
-        signal: new AbortController().signal,
-      })
+      const result = await callTool(harness, 'c1', 'run_shell', { command: 'rm -rf /' }, new AbortController().signal)
       expect(result.isError).toBe(true)
       expect(harness.runs()).toBe(0)
       expect(JSON.stringify(result.content)).toContain('guard')
@@ -176,13 +193,7 @@ describe('tools/pre-execute waterfall', () => {
   it('allows an ordinary command through to the body', async () => {
     const harness = await mountGuard()
     try {
-      const result = await harness.ctx.tools.execute({
-        callId: 'c2' as never,
-        name: 'run_shell',
-        arguments: { command: 'ls -la' },
-        agent: harness.agent,
-        signal: new AbortController().signal,
-      })
+      const result = await callTool(harness, 'c2', 'run_shell', { command: 'ls -la' }, new AbortController().signal)
       expect(result.isError).toBe(false)
       expect(harness.runs()).toBe(1)
     } finally {
@@ -202,13 +213,7 @@ describe('tools/pre-execute waterfall', () => {
         { agent: harness.agent, turn: 1, step: 1, signal },
         async () => ({ provider: 'mock', model: 'session-default' }),
       )
-      const result = await harness.ctx.tools.execute({
-        callId: 'c3' as never,
-        name: 'run_shell',
-        arguments: { command: 'rm -rf /' },
-        agent: harness.agent,
-        signal,
-      })
+      const result = await callTool(harness, 'c3', 'run_shell', { command: 'rm -rf /' }, signal)
       expect(result.isError).toBe(false)
       expect(harness.runs()).toBe(1)
     } finally {
@@ -220,13 +225,7 @@ describe('tools/pre-execute waterfall', () => {
     const harness = await mountGuard()
     try {
       await harness.fiber.dispose()
-      const result = await harness.ctx.tools.execute({
-        callId: 'c4' as never,
-        name: 'run_shell',
-        arguments: { command: 'rm -rf /' },
-        agent: harness.agent,
-        signal: new AbortController().signal,
-      })
+      const result = await callTool(harness, 'c4', 'run_shell', { command: 'rm -rf /' }, new AbortController().signal)
       expect(result.isError).toBe(false)
       expect(harness.runs()).toBe(1)
     } finally {
