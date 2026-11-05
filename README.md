@@ -1,6 +1,35 @@
+<div align="center">
+
 # dsh-autotier
 
+**Automatic model-tier routing for DeepSeek Harness: one user instruction enters, one tier decision comes out — no manual model switching.**
+
+Pick the right model tier per task automatically instead of switching models by hand.
+
+[简体中文](README-zh.md) · [Español](README-es.md) · [Português](README-pt.md) · [हिन्दी](README-hi.md)
+
 > 🧊 **FROZEN — 2026-10-31. Maintenance mode.** No new features; security and dependency fixes only.
+
+[![License](https://img.shields.io/badge/license-Apache--2.0-3366CC?style=flat-square&labelColor=2B3245)](LICENSE)
+[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.2.1%20%3C0.3.0-4B67B4?style=flat-square&labelColor=2B3245)](#compatibility)
+[![npm](https://img.shields.io/npm/v/dsh-autotier?style=flat-square&labelColor=2B3245&color=CB3837)](https://www.npmjs.com/package/dsh-autotier)
+[![CI](https://img.shields.io/github/actions/workflow/status/PerryLink/dsh-autotier/ci.yml?branch=main&label=CI&style=flat-square&labelColor=2B3245)](https://github.com/PerryLink/dsh-autotier/actions/workflows/ci.yml)
+[![Node](https://img.shields.io/badge/node-%5E22.19%20%7C%7C%20%3E=24-339933?style=flat-square&labelColor=2B3245)](#compatibility)
+
+[![Stars](https://img.shields.io/github/stars/PerryLink/dsh-autotier?style=flat-square&labelColor=2B3245)](https://github.com/PerryLink/dsh-autotier/stargazers)
+[![npm downloads](https://img.shields.io/npm/dm/dsh-autotier?style=flat-square&labelColor=2B3245&color=CB3837)](https://www.npmjs.com/package/dsh-autotier)
+[![dshfind](https://dshfind.com/api/badge/PerryLink/dsh-autotier?metric=downloads)](https://dshfind.com/plugins/PerryLink/dsh-autotier?ref=badge)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/PerryLink/dsh-autotier/badge)](https://securityscorecards.dev/viewer/?uri=github.com/PerryLink/dsh-autotier)
+[![DSH Market](https://img.shields.io/badge/DSH_Market-listed-4B67B4?style=flat-square&labelColor=2B3245)](https://dsh.market/)
+[![Gitee](https://img.shields.io/badge/Gitee-mirror-C71D23?style=flat-square&labelColor=2B3245&logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
+
+```sh
+dsh plugin --profile <name> add dsh-autotier
+```
+
+</div>
+
+<sub>Community plugin, not affiliated with DeepSeek. Canonical repository: <https://github.com/PerryLink/dsh-autotier> (Gitee is a mirror).</sub>
 
 ## Maintenance status: 🧊 FROZEN
 
