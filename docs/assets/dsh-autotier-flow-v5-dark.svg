@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="660" viewBox="0 0 1100 660" role="img" aria-label="dsh-autotier two-channel tier routing: signals and confidence on the left, a strong lane and a cheap lane in the middle with a plan-handoff bridge down and a failure-escalation bridge up, and the landing seam on the right">
+<title>dsh-autotier: intent gate, strong/cheap lanes, landing seam</title>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#131a2a"/>
+    <stop offset="1" stop-color="#0c1016"/>
+  </linearGradient>
+  <filter id="soft" x="-40%" y="-40%" width="180%" height="200%">
+    <feDropShadow dx="0" dy="8" stdDeviation="11" flood-color="#000000" flood-opacity=".55"/>
+  </filter>
+  <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+    <circle cx="1.4" cy="1.4" r="1.4" fill="#1c2536"/>
+  </pattern>
+  <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="#8496f5"/>
+  </marker>
+  <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0 0 L10 5 L0 10 z" fill="#3fb950"/>
+  </marker>
+</defs>
+<rect width="1100" height="660" fill="url(#bg)"/>
+<rect width="1100" height="660" fill="url(#dots)" opacity=".45"/>
+<text x="40" y="48" fill="#f0f3f9" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="27" font-weight="700" text-anchor="start">dsh-autotier</text>
+<text x="40" y="72" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="13" font-weight="400" text-anchor="start">one instruction → one tier decision → one landing; cheap runs are guarded, failures escalate</text>
+<text x="40" y="104" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="start" letter-spacing="1.4">DECIDE</text>
+<text x="316" y="104" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="start" letter-spacing="1.4">TIER LANES</text>
+<text x="818" y="104" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="start" letter-spacing="1.4">LANDING</text>
+<g filter="url(#soft)"><rect x="40" y="112" width="260" height="384" rx="20" fill="#1b2231" stroke="#2e374b"/></g>
+<text x="58" y="136" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="start">DECISION</text>
+<text x="282" y="136" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="end">0 tokens first</text>
+<text x="58" y="160" fill="#737b8d" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">signals</text>
+<rect x="58" y="168" width="45.6" height="20" rx="10" fill="#242d42"/>
+<text x="68" y="182" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">text</text>
+<rect x="111.6" y="168" width="52.0" height="20" rx="10" fill="#242d42"/>
+<text x="121.6" y="182" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">tools</text>
+<rect x="171.6" y="168" width="52.0" height="20" rx="10" fill="#242d42"/>
+<text x="181.6" y="182" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">image</text>
+<rect x="58" y="194" width="52.0" height="20" rx="10" fill="#242d42"/>
+<text x="68" y="208" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">depth</text>
+<rect x="118.0" y="194" width="39.2" height="20" rx="10" fill="#242d42"/>
+<text x="128.0" y="208" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">cwd</text>
+<line x1="58" y1="226" x2="282" y2="226" stroke="#1b2434"/>
+<text x="58" y="246" fill="#737b8d" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">confidence</text>
+<text x="282" y="246" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="end">rule ≥ 0.70</text>
+<rect x="58" y="254" width="224" height="14" rx="7" fill="#1b2434"/>
+<rect x="58" y="254" width="100.8" height="14" rx="7" fill="#242d42"/>
+<rect x="158.8" y="254" width="56.0" height="14" fill="#1b2434"/>
+<rect x="214.8" y="254" width="67.2" height="14" rx="7" fill="#8496f5" opacity=".42"/>
+<line x1="158.8" y1="250" x2="158.8" y2="272" stroke="#131a2a" stroke-width="2"/>
+<text x="158.8" y="284" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="middle">0.45</text>
+<line x1="214.8" y1="250" x2="214.8" y2="272" stroke="#131a2a" stroke-width="2"/>
+<text x="214.79999999999998" y="284" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="middle">0.70</text>
+<circle cx="275.3" cy="261" r="4.6" fill="#8496f5" stroke="#1b2231" stroke-width="2"/>
+<text x="58" y="302" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">≥ 0.70: the rule layer decides alone</text>
+<text x="58" y="318" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">hysteresis 0.80 / 0.60 damps flapping</text>
+<line x1="58" y1="330" x2="282" y2="330" stroke="#1b2434"/>
+<text x="58" y="350" fill="#737b8d" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">judge</text>
+<text x="282" y="350" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="end">only &lt; 0.70</text>
+<text x="58" y="372" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="12" font-weight="700" text-anchor="start">deepseek-flash</text>
+<text x="58" y="390" fill="#a8b1c4" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">maxTokens 16 · timeout 2 s</text>
+<text x="58" y="406" fill="#a8b1c4" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">cooldown 30 s · skip 2 fails</text>
+<line x1="58" y1="420" x2="282" y2="420" stroke="#1b2434"/>
+<text x="58" y="440" fill="#737b8d" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">override</text>
+<text x="58" y="460" fill="#f0f3f9" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11.5" font-weight="700" text-anchor="start">/tier auto|strong|cheap|off</text>
+<text x="58" y="478" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">routingMode · pill · card</text>
+<line x1="300" y1="304" x2="320" y2="304" stroke="#8496f5" stroke-width="3" marker-end="url(#a)"/>
+<line x1="320" y1="194" x2="320" y2="414" stroke="#8496f5" stroke-width="2.4"/>
+<line x1="320" y1="194" x2="340" y2="194" stroke="#8496f5" stroke-width="2.4" marker-end="url(#a)"/>
+<line x1="320" y1="414" x2="340" y2="414" stroke="#8496f5" stroke-width="2.4" marker-end="url(#a)"/>
+<rect x="340" y="112" width="450" height="164" rx="18" fill="#101621" stroke="#2e374b" opacity=".96"/>
+<rect x="340" y="332" width="450" height="164" rx="18" fill="#101621" stroke="#2e374b" opacity=".96"/>
+<text x="356" y="140" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="14" font-weight="700" text-anchor="start">STRONG</text>
+<text x="774" y="140" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="end">followSession false</text>
+<text x="356" y="160" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11.5" font-weight="400" text-anchor="start">plan · review</text>
+<text x="774" y="160" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="end">effort high</text>
+<text x="356" y="360" fill="#a8b1c4" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="14" font-weight="700" text-anchor="start">CHEAP</text>
+<text x="774" y="360" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="end">followSession true</text>
+<text x="356" y="380" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11.5" font-weight="400" text-anchor="start">implement · guard</text>
+<text x="774" y="380" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="end">effort low</text>
+<g filter="url(#soft)"><rect x="356" y="170" width="203" height="88" rx="18" fill="#1b2231" stroke="#2e374b"/></g>
+<text x="370" y="196" fill="#f0f3f9" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="15" font-weight="700" text-anchor="start">plan mode</text>
+<text x="370" y="218" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11.5" font-weight="400" text-anchor="start">complex intent first</text>
+<text x="370" y="238" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">plan/mode</text>
+<g filter="url(#soft)"><rect x="571" y="170" width="203" height="88" rx="18" fill="#1b2231" stroke="#2e374b"/></g>
+<text x="585" y="196" fill="#f0f3f9" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="14" font-weight="700" text-anchor="start">deepseek-v4-pro</text>
+<text x="585" y="218" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11.5" font-weight="400" text-anchor="start">the planning tier</text>
+<text x="585" y="238" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">tiers.strong</text>
+<g filter="url(#soft)"><rect x="356" y="390" width="132" height="88" rx="18" fill="#1b2231" stroke="#2e374b"/></g>
+<text x="368" y="416" fill="#f0f3f9" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="15" font-weight="700" text-anchor="start">implement</text>
+<text x="368" y="438" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">simple intent</text>
+<text x="368" y="458" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">design + build</text>
+<g filter="url(#soft)"><rect x="499" y="390" width="132" height="88" rx="18" fill="#1b2231" stroke="#d29922" stroke-width="1.6"/></g>
+<text x="511" y="416" fill="#d29922" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="15" font-weight="700" text-anchor="start">guard</text>
+<text x="511" y="438" fill="#a8b1c4" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">tools/pre-execute</text>
+<text x="511" y="458" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">16 cmd · 5 path</text>
+<g filter="url(#soft)"><rect x="642" y="390" width="132" height="88" rx="18" fill="#1b2231" stroke="#2e374b"/></g>
+<text x="654" y="416" fill="#f0f3f9" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="13" font-weight="700" text-anchor="start">deepseek-flash</text>
+<text x="654" y="438" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">effort low</text>
+<text x="654" y="458" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">cheap landing</text>
+<path d="M430 276 L430 324" stroke="#8496f5" stroke-width="2.6" stroke-dasharray="6 5" marker-end="url(#a)"/>
+<text x="442" y="308" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="start">plan exit</text>
+<path d="M690 332 L690 284" stroke="#3fb950" stroke-width="2.6" marker-end="url(#g)"/>
+<text x="678" y="308" fill="#3fb950" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="end">escalate 2 / 60 s → 180 s</text>
+<line x1="790" y1="194" x2="806" y2="194" stroke="#8496f5" stroke-width="2.4"/>
+<line x1="790" y1="414" x2="806" y2="414" stroke="#8496f5" stroke-width="2.4"/>
+<line x1="806" y1="194" x2="806" y2="414" stroke="#8496f5" stroke-width="2.4"/>
+<line x1="806" y1="304" x2="812" y2="304" stroke="#8496f5" stroke-width="2.8" marker-end="url(#a)"/>
+<g filter="url(#soft)"><rect x="818" y="112" width="242" height="384" rx="20" fill="#1b2231" stroke="#2e374b"/></g>
+<text x="834" y="138" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="start">LANDING SEAM</text>
+<text x="834" y="166" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">0.2.2</text>
+<text x="834" y="186" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="12" font-weight="700" text-anchor="start">agent.model.select()</text>
+<text x="834" y="206" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">next admitted input</text>
+<text x="834" y="224" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">provider · model · effort</text>
+<line x1="834" y1="238" x2="1044" y2="238" stroke="#1b2434"/>
+<text x="834" y="262" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">0.2.1</text>
+<text x="834" y="282" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="12" font-weight="700" text-anchor="start">agent/request</text>
+<text x="834" y="302" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">replacement triple</text>
+<text x="834" y="320" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">sampling scalars kept</text>
+<line x1="834" y1="334" x2="1044" y2="334" stroke="#1b2434"/>
+<text x="834" y="358" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start" letter-spacing="1">OUTPUT</text>
+<text x="834" y="380" fill="#f0f3f9" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="700" text-anchor="start">provider/model/effort</text>
+<text x="834" y="400" fill="#3fb950" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">autotier/tier-changed</text>
+<text x="834" y="418" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">ctx.autotier.status()</text>
+<line x1="834" y1="432" x2="1044" y2="432" stroke="#1b2434"/>
+<text x="834" y="454" fill="#a8b1c4" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif" font-size="11" font-weight="400" text-anchor="start">image turn</text>
+<text x="834" y="474" fill="#8496f5" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">tiers.vision → deepseek-flash</text>
+<line x1="40" y1="520" x2="1060" y2="520" stroke="#1b2434"/>
+<text x="40" y="542" fill="#a8b1c4" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11.5" font-weight="400" text-anchor="start">guard denies rm -rf · sudo · mkfs · git push --force · credential writes · .dsh / AGENTS.md / package.json / .github/workflows</text>
+<text x="40" y="562" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">fallback chain tiers.*.fallback · 300 s TTL · intent.attemptBand 0.45–0.70 ships disabled</text>
+<text x="40" y="582" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">per-session override /tier · routingMode auto|strong|cheap|delegated|off · composer pill · settings card</text>
+<text x="40" y="626" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="start">Apache-2.0 · PerryLink DSH plugin family</text>
+<text x="1060" y="626" fill="#737b8d" font-family="ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, 'Microsoft YaHei', monospace" font-size="11" font-weight="400" text-anchor="end">src/intent.ts · policy.ts · routing.ts · guard.ts</text>
+</svg>

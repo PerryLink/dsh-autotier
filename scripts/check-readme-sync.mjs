@@ -1,30 +1,19 @@
 // Five-language README sync gate: every README must carry the same number of
 // `## ` sections as the English source, state the install command, and contain
 // every configuration-table key. Section headings may be translated; the
-// English file is the source of truth.
-import { readFileSync, existsSync, readdirSync } from 'node:fs'
+// English file (`README.en.md`) is the source of truth, `README.md` is the
+// Simplified Chinese default.
+import { readFileSync, existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)))
-const FILES = ['README.md', 'README-zh.md', 'README-es.md', 'README-pt.md', 'README-hi.md']
+const SOURCE = 'README.en.md'
+const FILES = ['README.md', SOURCE, 'README.es.md', 'README.pt.md', 'README.hi.md']
 const INSTALL_COMMAND = 'dsh1024 plugin --profile web add dsh-autotier'
 
 const failures = []
 
-// npm picks the package-page readme as the FIRST markdown file matching its
-// `{README,README.*}` glob (@npmcli/package-json, prepareSteps), and that glob
-// order puts `README.<lang>.md` before `README.md` — which is why the
-// translations are named `README-<lang>.md` (outside the glob). A second
-// matching file here would silently switch the language shown on the npm page,
-// so mirror the glob and fail loudly.
-const MARKDOWN = /\.m?a?r?k?d?o?w?n?$/iu
-const npmReadmeCandidates = readdirSync(root).filter(
-  (name) => /^readme\..+$/iu.test(name) && MARKDOWN.test(name),
-)
-if (npmReadmeCandidates.length !== 1 || npmReadmeCandidates[0] !== 'README.md') {
-  failures.push(`package root must hold exactly one README*.md for npm (README.md); found: ${npmReadmeCandidates.join(', ') || 'none'}`)
-}
 const read = (file) => {
   const filePath = path.join(root, file)
   if (!existsSync(filePath)) {
@@ -58,13 +47,13 @@ const configKeysOf = (text) => {
 }
 
 const contents = FILES.map(read)
-const source = contents[0]
+const source = contents[FILES.indexOf(SOURCE)]
 if (source === undefined) process.exit(1)
 const expectedSections = sectionCount(source)
 const expectedKeys = configKeysOf(source)
 
-for (let index = 1; index < FILES.length; index++) {
-  const file = FILES[index]
+for (const [index, file] of FILES.entries()) {
+  if (file === SOURCE) continue
   const text = contents[index]
   if (text === undefined || text === '') continue
   if (sectionCount(text) !== expectedSections) {

@@ -1,4 +1,13 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-autotier-hero-en-dark.webp">
+  <img src="docs/assets/dsh-autotier-hero-en-light.webp" width="100%" alt="dsh-autotier: entra uma instrução e sai uma decisão de nível — strong planeja, cheap implementa, sem troca manual de modelo">
+</picture>
+
 # dsh-autotier
+
+</div>
 
 > 🧊 **CONGELADO — 2026-10-31. Modo manutenção.** Sem novos recursos; apenas correções de segurança e dependências.
 
@@ -17,7 +26,7 @@ Congelado em 2026-10-31 em modo manutenção. O pacote continua instalável; ape
 [![Version](https://img.shields.io/github/v/tag/PerryLink/dsh-autotier?label=version)](https://github.com/PerryLink/dsh-autotier/releases)
 [![dshfind](https://dshfind.com/api/badge/PerryLink/dsh-autotier?metric=downloads&lang=pt)](https://dshfind.com/pt/plugins/PerryLink/dsh-autotier?ref=badge)
 
-[English](README.md) | [简体中文](README-zh.md) | [Español](README-es.md) | **Português** | [हिन्दी](README-hi.md)
+[简体中文](README.md) · [English](README.en.md) · [Español](README.es.md) · [Português](README.pt.md) · [हिन्दी](README.hi.md)
 
 ```sh
 dsh plugin --profile <name> add dsh-autotier
@@ -81,24 +90,30 @@ plugin. A configuração que um usuário salvou pela página Plugins vive no pat
 perfil ativo e pertence àquele perfil, não a este plugin; remover a linha a deixa
 ali intacta.
 
-## ⭐ 如果它帮到了你
+## ⭐ Se ajudou
 
 Este plugin faz parte da [família de plugins DSH](https://github.com/PerryLink) (mais de 40, todos Apache-2.0). Se for útil, **deixe uma estrela**: não desbloqueia nada, mas ajuda a próxima pessoa a encontrá-lo.
 
 *English:* part of a 95 plugin family for DeepSeek Harness. If it is useful, **a star helps the next person find it** — nothing is gated behind it.
 
-## What is dsh-autotier?
+## O que é
 
-Canal npm
+Uma instrução do usuário entra e o plugin a classifica com sinais
+determinísticos (texto da mensagem, nomes de ferramentas, imagens e
+profundidade da conversa). A camada de regras decide sozinha quando tem
+confiança; apenas um turno de baixa confiança chama o modelo juiz barato. A
+intenção complexa cai no nível **strong** para planejar e depois é implementada
+no **cheap**; a intenção simples é projetada e implementada direto no **cheap**;
+um turno com imagem cai em `tiers.vision`. A decisão chega ao passo seguinte
+pelo seam oficial (`agent.model.select()` em 0.2.2, o waterfall
+`agent/request` em 0.2.1). Enquanto o nível cheap executa, o guard determinístico
+nega chamadas de alto risco e falhas repetidas escalam para o nível strong
+durante um TTL.
 
-Canal git
-
-![Diagrama de fluxo de dsh-autotier: chamada → plugin → resultado.](docs/assets/dsh-autotier-flow.svg)
-
-*Visão geral do fluxo: chamada → plugin → resultado. Os exemplos abaixo usam a superfície real de comandos.*
-
-
-*A mesma execução, animada.*
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-autotier-flow-v5-dark.svg">
+  <img src="docs/assets/dsh-autotier-flow-v5-light.svg" width="100%" alt="dsh-autotier structure: deterministic signals and confidence → rule layer or judge → strong and cheap lanes (the guard sits on cheap) → landing seam, with plan handoff and failure escalation crossing the lanes">
+</picture>
 
 ## Compatibilidade
 

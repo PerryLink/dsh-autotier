@@ -1,4 +1,13 @@
+<div align="center">
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-autotier-hero-en-dark.webp">
+  <img src="docs/assets/dsh-autotier-hero-en-light.webp" width="100%" alt="dsh-autotier: एक निर्देश अंदर, एक स्तर-निर्णय बाहर — strong योजना बनाता है, cheap लागू करता है, मॉडल हाथ से बदलने की ज़रूरत नहीं">
+</picture>
+
 # dsh-autotier
+
+</div>
 
 > 🧊 **2026-10-31 से फ़्रीज़। रखरखाव मोड।** कोई नई सुविधा नहीं; केवल सुरक्षा और निर्भरता सुधार।
 
@@ -7,7 +16,7 @@
 2026-10-31 से रखरखाव मोड में फ़्रीज़। पैकेज इंस्टॉल योग्य रहता है; केवल सुरक्षा और निर्भरता सुधार की योजना है।
 
 
-[English](README.md) · [简体中文](README-zh.md) · [Español](README-es.md) · [Português](README-pt.md) · [हिन्दी](README-hi.md)
+[简体中文](README.md) · [English](README.en.md) · [Español](README.es.md) · [Português](README.pt.md) · [हिन्दी](README.hi.md)
 
 ```sh
 dsh plugin --profile <name> add dsh-autotier
@@ -24,7 +33,6 @@ dsh plugin --profile <name> add dsh-autotier
 [![Version](https://img.shields.io/github/v/tag/PerryLink/dsh-autotier?label=version)](https://github.com/PerryLink/dsh-autotier/releases)
 [![dshfind](https://dshfind.com/api/badge/PerryLink/dsh-autotier?metric=downloads&lang=hi)](https://dshfind.com/hi/plugins/PerryLink/dsh-autotier?ref=badge)
 
-[English](README.md) | [简体中文](README-zh.md) | [Español](README-es.md) | [Português](README-pt.md) | **हिन्दी**
 
 DeepSeek Harness के लिए स्वचालित मॉडल-स्तर रूटिंग: एक उपयोगकर्ता निर्देश अंदर
 आता है, एक स्तर-निर्णय बाहर आता है — मॉडल हाथ से बदलने की ज़रूरत नहीं।
@@ -81,24 +89,29 @@ dsh plugin --profile web remove dsh-autotier
 Plugins पेज से सहेजी गई कॉन्फ़िगरेशन सक्रिय profile patch में रहती है और उस
 profile की है, इस प्लगइन की नहीं; पंक्ति हटाने पर वह वहीं अछूती रहती है।
 
-## ⭐ 如果它帮到了你
+## ⭐ अगर इससे मदद मिली
 
 यह प्लगइन [DSH प्लगइन परिवार](https://github.com/PerryLink) का हिस्सा है (95 प्लगइन, सभी Apache-2.0)। अगर यह उपयोगी लगे, तो **एक स्टार दें** — इससे कोई सुविधा अनलॉक नहीं होती, पर अगला व्यक्ति इसे खोज में आसानी से पा लेता है।
 
 *English:* part of a 95 plugin family for DeepSeek Harness. If it is useful, **a star helps the next person find it** — nothing is gated behind it.
 
-## What is dsh-autotier?
+## यह क्या है
 
-npm चैनल
+एक उपयोगकर्ता निर्देश अंदर आता है और प्लगइन उसे नियतात्मक संकेतों से वर्गीकृत
+करता है: संदेश का पाठ, टूल के नाम, छवि की उपस्थिति और बातचीत की गहराई। नियम
+परत आत्मविश्वास होने पर अकेले निर्णय लेती है; केवल कम-विश्वास वाला turn सस्ते
+जज मॉडल को कॉल करता है। जटिल आशय **strong** स्तर पर योजना बनाता है और फिर
+**cheap** में लागू होता है; सरल आशय सीधे **cheap** में डिज़ाइन और कार्यान्वित
+होता है, और छवि वाला turn `tiers.vision` में जाता है। निर्णय आधिकारिक seam
+(`0.2.2` में `agent.model.select()`, `0.2.1` में `agent/request` waterfall)
+से अगले चरण तक पहुँचता है। cheap स्तर के निष्पादन के दौरान नियतात्मक गार्ड
+उच्च-जोखिम टूल कॉल अस्वीकार करता है और बार-बार विफलता पर TTL के लिए strong
+स्तर पर वृद्धि होती है।
 
-git चैनल
-
-![dsh-autotier कार्यप्रवाह आरेख: कॉल → प्लगइन → परिणाम।](docs/assets/dsh-autotier-flow.svg)
-
-*कार्यप्रवाह: कॉल → प्लगइन → परिणाम। नीचे के उदाहरण वास्तविक कमांड सतह का उपयोग करते हैं।*
-
-
-*वही रन, एनिमेटेड।*
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/dsh-autotier-flow-v5-dark.svg">
+  <img src="docs/assets/dsh-autotier-flow-v5-light.svg" width="100%" alt="dsh-autotier structure: deterministic signals and confidence → rule layer or judge → strong and cheap lanes (the guard sits on cheap) → landing seam, with plan handoff and failure escalation crossing the lanes">
+</picture>
 
 ## संगतता
 
