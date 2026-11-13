@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Track the `@deepseek-ai/dsh-*` 0.2.2-rc.3 patch line: all 28 pinned
+  devDependencies move from `0.2.2-rc.1` to `0.2.2-rc.3`; `pnpm-lock.yaml` is
+  regenerated. `peerDependencies` and `engines.dsh` keep their existing
+  `>=0.2.2-0 <0.3.0` range. The rc.1→rc.3 host diff needed one fixture change
+  (`SubagentActivationSpec` / `ToolGuard` are not used here): the loop test's
+  mock failure code is derived from `LlmError`'s constructor so it typechecks on
+  both rulers.
+
 ### Fixed
 
 - The low-confidence intent judge now runs with **thinking disabled**
