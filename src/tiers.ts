@@ -94,6 +94,11 @@ export interface EscalationRung {
  * switch. When both tiers share one model the ladder collapses to a single
  * effort-only rung.
  *
+ * The ladder rewrites agent requests only. The auxiliary intent judge
+ * (`judge.ts`) carries its own `intent.judge.effort` (default `off`) and is
+ * never a ladder rung, so escalating a failing cheap model to `high`/`max`
+ * cannot re-enable the judge's thinking.
+ *
  * @param base - the configuration the loop proposed for the failing step.
  * @param cheap - the cheap tier landing.
  * @param strong - the strong tier landing.

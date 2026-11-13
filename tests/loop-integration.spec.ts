@@ -33,11 +33,18 @@ interface RecordedCall {
   effort: string | undefined
 }
 
+/**
+ * The failure-code parameter of this host line's `LlmError`: a plain `string`
+ * on 0.2.2-rc.1, a closed `BuiltinLlmFailureCode` union on 0.2.2-rc.3. Deriving
+ * it from the constructor keeps this fixture typechecking on both rulers.
+ */
+type MockFailureCode = ConstructorParameters<typeof LlmError>[1]
+
 /** A mock provider route that records every dispatch and answers `ok`. */
 class RecordingAdapter extends LlmAdapter {
   readonly calls: RecordedCall[] = []
   /** Model id -> failure code; a dispatch on that model throws instead of streaming. */
-  readonly failures = new Map<string, string>()
+  readonly failures = new Map<string, MockFailureCode>()
 
   /** Declare the adapter-owned effort vocabulary so the runtime accepts our routes. */
   override resolveModel(provider: string, model: string): Promise<LlmResolvedModelInfo> {

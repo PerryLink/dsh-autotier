@@ -296,7 +296,8 @@ same keys inline.
 | `intent.rules` | `[]` | Declarative rule table (`when.patterns` / `when.tools` / `when.cwd`, `tier`, `priority`). |
 | `intent.judge.enabled` | `true` | Allow the low-confidence judge. |
 | `intent.judge.model` | `''` | Judge model id; empty = first catalog model containing `flash`. |
-| `intent.judge.temperature` | `0` | Judge sampling temperature. |
+| `intent.judge.temperature` | `0` | Accepted for compatibility but no longer sent (thinking mode ignores sampling). |
+| `intent.judge.effort` | `off` | Judge reasoning effort; `off` disables thinking so the answer budget is not spent on a chain of thought. |
 | `intent.judge.maxTokens` | `16` | Judge output cap (it answers with one word). |
 | `intent.judge.cooldownMs` | `30000` | Minimum gap between two judge calls. |
 | `intent.judge.timeoutMs` | `2000` | Judge call timeout. |

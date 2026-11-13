@@ -12,6 +12,7 @@ import {
   BlockAssembler,
   boundContextSummary,
   createUserMessage,
+  ReasoningEffortId,
   type ContextFormed,
   type GenerateOptions,
 } from '@deepseek-ai/dsh-llm'
@@ -109,6 +110,17 @@ export function parseJudgeLabel(answer: string): Scenario | undefined {
 
 /**
  * Run one judge call.
+ *
+ * The judge is an auxiliary classifier, not a reasoning task: it pins its own
+ * `intent.judge.effort` (default `off`) so the label budget and timeout are
+ * spent on the answer instead of a chain of thought. This call is deliberately
+ * outside the effort-first escalation ladder in `tiers.ts` — that ladder
+ * rewrites agent requests only, so a cheap tier escalated to `high`/`max` never
+ * turns the judge's thinking back on. `temperature` is not sent either: thinking
+ * mode silently ignores it, and the judge request must not depend on a knob
+ * whose effect changes with the model family. `intent.judge.temperature` stays
+ * accepted for config compatibility only.
+ *
  * @param ctx - the plugin context (reads `ctx.llm`).
  * @param config - the resolved configuration.
  * @param text - the newest user message text.
@@ -147,8 +159,11 @@ export async function runJudge(
         summary: boundContextSummary(`autotier judge: classify intent (${route.provider}/${route.model})`),
       },
     })],
-    temperature: config.intent.judge.temperature,
     maxTokens: config.intent.judge.maxTokens,
+    // Thinking off: on the DeepSeek line thinking mode defaults to enabled at
+    // `high` effort, so a 16-token budget would be consumed by the reasoning
+    // tokens before the label arrives (usually surfacing as a 2s timeout).
+    reasoningEffort: ReasoningEffortId(config.intent.judge.effort),
     signal: fused,
   }
   const assembler = new BlockAssembler()

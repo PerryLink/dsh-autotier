@@ -77,7 +77,12 @@
             enabled: true
             # Empty = pick the first catalog model whose id contains "flash".
             model: ''
+            # Deprecated: validated for compatibility, but not sent on the wire
+            # (thinking mode ignores sampling scalars).
             temperature: 0
+            # Thinking off: the judge's 16-token budget must not be spent on a
+            # chain of thought, and the escalation ladder never touches this.
+            effort: off
             maxTokens: 16
             cooldownMs: 30000
             timeoutMs: 2000

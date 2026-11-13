@@ -283,6 +283,7 @@ function resolveIntent(raw: IntentConfig | undefined): ResolvedConfig['intent'] 
       enabled: boolean('intent.judge.enabled', judge.enabled, true),
       model: judgeModel,
       temperature: number('intent.judge.temperature', judge.temperature, 0, 0, 2),
+      effort: member('intent.judge.effort', judge.effort, 'off', EFFORT_IDS),
       maxTokens: integer('intent.judge.maxTokens', judge.maxTokens, 16, 1, 4_096),
       cooldownMs: number('intent.judge.cooldownMs', judge.cooldownMs, 30_000, 0, 3_600_000),
       timeoutMs: number('intent.judge.timeoutMs', judge.timeoutMs, 2_000, 1, 120_000),

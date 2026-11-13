@@ -237,7 +237,8 @@ Error: dsh-autotier: config.tiers strong and cheap resolve to the same landing (
 | `intent.rules` | `[]` | 声明式规则表（`when.patterns` / `when.tools` / `when.cwd`、`tier`、`priority`）。 |
 | `intent.judge.enabled` | `true` | 是否允许低置信裁判。 |
 | `intent.judge.model` | `''` | 裁判模型 id；空 = 取目录中第一个含 `flash` 的模型。 |
-| `intent.judge.temperature` | `0` | 裁判采样温度。 |
+| `intent.judge.temperature` | `0` | 仅为兼容保留，不再发送（思考模式会忽略采样参数）。 |
+| `intent.judge.effort` | `off` | 裁判推理强度；`off` 关闭思考，让输出预算用于答案而非思维链。 |
 | `intent.judge.maxTokens` | `16` | 裁判输出上限（只回答一个词）。 |
 | `intent.judge.cooldownMs` | `30000` | 两次裁判调用的最小间隔。 |
 | `intent.judge.timeoutMs` | `2000` | 裁判调用超时。 |

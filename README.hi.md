@@ -260,7 +260,8 @@ Error: dsh-autotier: config.tiers strong and cheap resolve to the same landing (
 | `intent.rules` | `[]` | घोषणात्मक नियम तालिका (`when.patterns` / `when.tools` / `when.cwd`, `tier`, `priority`)। |
 | `intent.judge.enabled` | `true` | कम-आत्मविश्वास वाले जज की अनुमति। |
 | `intent.judge.model` | `''` | जज मॉडल id; खाली = कैटलॉग का पहला `flash` वाला मॉडल। |
-| `intent.judge.temperature` | `0` | जज सैंपलिंग तापमान। |
+| `intent.judge.temperature` | `0` | केवल संगतता के लिए स्वीकार्य, अब भेजा नहीं जाता (thinking मोड sampling को नज़रअंदाज़ करता है)। |
+| `intent.judge.effort` | `off` | जज का reasoning effort; `off` सोच बंद करता है ताकि आउटपुट बजट chain-of-thought पर न जाए। |
 | `intent.judge.maxTokens` | `16` | जज आउटपुट सीमा (एक शब्द में उत्तर)। |
 | `intent.judge.cooldownMs` | `30000` | दो जज कॉल के बीच न्यूनतम अंतर। |
 | `intent.judge.timeoutMs` | `2000` | जज कॉल का समय-समाप्ति। |

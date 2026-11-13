@@ -266,7 +266,8 @@ repositorio documenta las mismas claves en línea.
 | `intent.rules` | `[]` | Tabla declarativa de reglas (`when.patterns` / `when.tools` / `when.cwd`, `tier`, `priority`). |
 | `intent.judge.enabled` | `true` | Permitir el juez de baja confianza. |
 | `intent.judge.model` | `''` | Id del modelo juez; vacío = primer modelo del catálogo que contenga `flash`. |
-| `intent.judge.temperature` | `0` | Temperatura de muestreo del juez. |
+| `intent.judge.temperature` | `0` | Se acepta por compatibilidad pero ya no se envía (el modo de pensamiento ignora el muestreo). |
+| `intent.judge.effort` | `off` | Esfuerzo de razonamiento del juez; `off` desactiva el pensamiento para no gastar el presupuesto en la cadena de razonamiento. |
 | `intent.judge.maxTokens` | `16` | Límite de salida del juez (responde con una palabra). |
 | `intent.judge.cooldownMs` | `30000` | Separación mínima entre dos llamadas al juez. |
 | `intent.judge.timeoutMs` | `2000` | Tiempo límite de la llamada al juez. |

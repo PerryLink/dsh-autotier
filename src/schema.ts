@@ -54,7 +54,14 @@ export interface JudgeConfig {
   enabled?: boolean
   /** Empty = pick the first catalog model whose id contains `flash`. */
   model?: string
+  /**
+   * Kept for configuration compatibility only: the judge no longer sends it.
+   * Thinking mode ignores sampling scalars, and the judge runs with thinking
+   * off, so a temperature knob would silently change meaning across models.
+   */
   temperature?: number
+  /** Reasoning effort for this auxiliary call; `off` disables thinking. */
+  effort?: EffortId
   maxTokens?: number
   cooldownMs?: number
   timeoutMs?: number
@@ -243,7 +250,12 @@ export const Config: z<Config, VolatileConfig> = z.object({
     judge: z.object({
       enabled: z.boolean().default(true),
       model: z.string().default(''),
+      // Deprecated: kept so existing rows still validate, but the judge call
+      // does not send it any more (see `JudgeConfig.temperature`).
       temperature: z.number().min(0).max(2).default(0),
+      // Thinking off by default: a one-label answer must not spend its 16-token
+      // budget on a chain of thought, and thinking mode ignores temperature.
+      effort: z.union([...EFFORT_IDS]).default('off'),
       maxTokens: z.number().step(1).min(1).max(4_096).default(16),
       cooldownMs: z.number().min(0).max(3_600_000).default(30_000),
       timeoutMs: z.number().min(1).max(120_000).default(2_000),
@@ -252,6 +264,7 @@ export const Config: z<Config, VolatileConfig> = z.object({
       enabled: true,
       model: '',
       temperature: 0,
+      effort: 'off',
       maxTokens: 16,
       cooldownMs: 30_000,
       timeoutMs: 2_000,

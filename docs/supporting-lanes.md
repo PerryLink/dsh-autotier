@@ -42,4 +42,8 @@ schema if a row is rejected. `dsh-autotier` never writes these rows.
 The low-confidence judge uses `intent.judge.model` (or the first catalog model
 whose id contains `flash`) through the ordinary `ctx.llm` path. It is a separate,
 short request with its own `maxTokens` and `timeoutMs`, so it never inherits a
-tier's landing — pin it to a cheap model on purpose.
+tier's landing — pin it to a cheap model on purpose. It also pins its own
+`intent.judge.effort` (default `off`): the judge answers with one label, so
+thinking would consume the token budget and the timeout before the label is
+emitted. The effort-first escalation ladder applies to agent requests only and
+never overrides the judge's effort.

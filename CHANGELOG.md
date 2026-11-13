@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- The low-confidence intent judge now runs with **thinking disabled**
+  (`intent.judge.effort`, default `off`) instead of relying on the adapter
+  default. On thinking-mode models the default is `high`, so the judge's
+  16-token budget was consumed by `reasoning_content` before the label was
+  emitted and the 2s timeout usually expired — every judged turn then fell back
+  to the local classifier. `temperature` is no longer sent (thinking mode
+  silently ignores it; the knob stays accepted for config compatibility), while
+  `maxTokens` and `timeoutMs` remain configurable with their previous defaults.
+  The effort-first escalation ladder never touches this auxiliary call.
+
 ## [0.2.21] - 2026-11-05
 
 ### Changed
