@@ -444,7 +444,7 @@ Static evidence: `dsh-plugin-doctor` K10–K13 report `pass` for every check on 
 PerryLink. Issues and pull requests are welcome at
 <https://github.com/PerryLink/dsh-autotier/issues>.
 
-**Applicable DSH version:** verified against `dsh-v0.2.1-rc.2` (the host release this build targets); requires `>=0.1.6-0 <0.2.0` / `>=0.2.0-0 <0.3.0` / `>=0.2.1-0 <0.3.0`.
+**Applicable DSH version:** verified against `dsh-v0.2.2-rc.4` (the host release this build targets); requires `>=0.1.6-0 <0.2.0` / `>=0.2.0-0 <0.3.0` / `>=0.2.1-0 <0.3.0`.
 
 ## PerryLink DSH Plugin Family
 
