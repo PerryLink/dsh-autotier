@@ -152,7 +152,7 @@ deterministic guard, and repeated failures escalate to the strong tier for a TTL
 | `@deepseek-ai/dsh` `0.2.1-rc.2` | compatible; routing uses the `agent/request` waterfall, which that line still allows to change the route |
 | `@deepseek-ai/cordis` `^4.0.3`, `@deepseek-ai/cosmokit` `^1.8.4`, `@deepseek-ai/schemastery` `^3.18.3` | peer baseline |
 
-Peer ranges name all published lines explicitly (`>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0 || >=0.2.1-0 <0.3.0`), because a semver range whose only prerelease
+Peer ranges name all published lines explicitly (`>=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0 || >=0.2.1-0 <0.3.0 || >=0.2.2-0 <0.3.0`), because a semver range whose only prerelease
 comparator sits on an earlier version tuple does not admit a later alpha.
 They are refreshed per published wave. The declared range is deliberately wider
 than the verified one: it documents what the manifest accepts, not what has been
@@ -446,7 +446,7 @@ Static evidence: `dsh-plugin-doctor` K10–K13 report `pass` for every check on 
 PerryLink. Issues and pull requests are welcome at
 <https://github.com/PerryLink/dsh-autotier/issues>.
 
-**Applicable DSH version:** verified against `dsh-v0.2.2-rc.4` (the host release this build targets); requires `>=0.1.6-0 <0.2.0` / `>=0.2.0-0 <0.3.0` / `>=0.2.1-0 <0.3.0`.
+**Applicable DSH version:** verified against `dsh-v0.2.2-rc.4` (the host release this build targets); requires `>=0.1.6-0 <0.2.0` / `>=0.2.0-0 <0.3.0` / `>=0.2.1-0 <0.3.0 || >=0.2.2-0 <0.3.0`.
 
 ## PerryLink DSH Plugin Family
 

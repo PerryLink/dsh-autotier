@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.22] - 2026-11-18
+
 ### Changed
 
 - Track the `@deepseek-ai/dsh-*` 0.2.2-rc.3 patch line: all 28 pinned
