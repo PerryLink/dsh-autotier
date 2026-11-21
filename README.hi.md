@@ -115,6 +115,11 @@ profile की है, इस प्लगइन की नहीं; पंक�
   <img src="docs/assets/dsh-autotier-flow-v5-light.svg" width="100%" alt="dsh-autotier structure: deterministic signals and confidence → rule layer or judge → strong and cheap lanes (the guard sits on cheap) → landing seam, with plan handoff and failure escalation crossing the lanes">
 </picture>
 
+![dsh-autotier का असली टर्मिनल रन](docs/assets/dsh-autotier-demo.gif)
+
+*इस रिपॉज़िटरी में दर्ज असली रन का एनिमेटेड रीप्ले।*
+
+
 ## संगतता
 
 | Harness | स्थिति |

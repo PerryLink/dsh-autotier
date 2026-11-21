@@ -116,6 +116,11 @@ al nivel strong durante un TTL.
   <img src="docs/assets/dsh-autotier-flow-v5-light.svg" width="100%" alt="dsh-autotier structure: deterministic signals and confidence → rule layer or judge → strong and cheap lanes (the guard sits on cheap) → landing seam, with plan handoff and failure escalation crossing the lanes">
 </picture>
 
+![dsh-autotier: ejecución real de terminal](docs/assets/dsh-autotier-demo.gif)
+
+*Repetición animada de una ejecución real registrada en este repositorio.*
+
+
 ## Compatibilidad
 
 | Harness | Estado |

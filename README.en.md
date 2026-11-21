@@ -204,6 +204,10 @@ optional and only makes the router's decisions visible to the model (see
 
 ## Quick start
 
+![dsh-autotier: real terminal run](docs/assets/dsh-autotier-demo.gif)
+
+*Animated replay of a real run recorded in this repository.*
+
 ```sh
 dsh plugin --profile web add github:PerryLink/dsh-autotier
 ```
