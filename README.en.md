@@ -7,6 +7,8 @@
 
 # dsh-autotier
 
+Current version `0.2.24`.
+
 **Automatic model-tier routing for DeepSeek Harness: one user instruction enters, one tier decision comes out — no manual model switching.**
 
 Pick the right model tier per task automatically instead of switching models by hand.

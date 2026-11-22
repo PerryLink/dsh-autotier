@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Autotier",
+    "description": "Automatic model-tier routing for DeepSeek Harness: one user instruction enters, one tier decision comes out — no manual model switching."
+  }
+}
