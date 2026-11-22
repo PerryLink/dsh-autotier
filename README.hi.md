@@ -1,5 +1,3 @@
-> Host compatibility: DeepSeek Harness `dsh-v0.2.2-rc.4` (verified 2026-11-18).
-
 <div align="center">
 
 <picture>
@@ -13,17 +11,17 @@
 
 > 🧊 **2026-10-31 से फ़्रीज़। रखरखाव मोड।** कोई नई सुविधा नहीं; केवल सुरक्षा और निर्भरता सुधार।
 
+अंतिम सत्यापन: DeepSeek Harness `dsh-v0.2.3-alpha.1` (2026-11-22).
+
 ## रखरखाव स्थिति: 🧊 फ़्रीज़
 
 2026-10-31 से रखरखाव मोड में फ़्रीज़। पैकेज इंस्टॉल योग्य रहता है; केवल सुरक्षा और निर्भरता सुधार की योजना है।
-
 
 [简体中文](README.md) · [English](README.en.md) · [Español](README.es.md) · [Português](README.pt.md) · [हिन्दी](README.hi.md)
 
 ```sh
 dsh plugin --profile <name> add dsh-autotier
 ```
-
 
 [![Gitee](https://img.shields.io/badge/Gitee-mirror-c71d23?logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -34,7 +32,6 @@ dsh plugin --profile <name> add dsh-autotier
 [![CI](https://img.shields.io/github/actions/workflow/status/PerryLink/dsh-autotier/ci.yml?branch=main&label=CI)](https://github.com/PerryLink/dsh-autotier/actions)
 [![Version](https://img.shields.io/github/v/tag/PerryLink/dsh-autotier?label=version)](https://github.com/PerryLink/dsh-autotier/releases)
 [![dshfind](https://dshfind.com/api/badge/PerryLink/dsh-autotier?metric=downloads&lang=hi)](https://dshfind.com/hi/plugins/PerryLink/dsh-autotier?ref=badge)
-
 
 DeepSeek Harness के लिए स्वचालित मॉडल-स्तर रूटिंग: एक उपयोगकर्ता निर्देश अंदर
 आता है, एक स्तर-निर्णय बाहर आता है — मॉडल हाथ से बदलने की ज़रूरत नहीं।
@@ -48,7 +45,6 @@ DeepSeek Harness के लिए स्वचालित मॉडल-स्�
 
 - **आधिकारिक रिपॉज़िटरी**: <https://github.com/PerryLink/dsh-autotier>
 - **npm**: `dsh-autotier` (सादा नाम, बिना scope)
-
 
 **📖 इकोसिस्टम नॉलेज बेस** — मापे गए आँकड़े, मार्केटिंग नहीं: [डेवलपमेंट गाइड · चयन डेटा · रखरखाव मानदंड](https://perrylink.github.io/dsh-plugin-guide/)।
 
@@ -118,7 +114,6 @@ profile की है, इस प्लगइन की नहीं; पंक�
 ![dsh-autotier का असली टर्मिनल रन](docs/assets/dsh-autotier-demo.gif)
 
 *इस रिपॉज़िटरी में दर्ज असली रन का एनिमेटेड रीप्ले।*
-
 
 ## संगतता
 

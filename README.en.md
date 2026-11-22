@@ -1,5 +1,3 @@
-> Host compatibility: DeepSeek Harness `dsh-v0.2.2-rc.4` (verified 2026-11-18).
-
 <div align="center">
 
 <picture>
@@ -12,6 +10,8 @@
 **Automatic model-tier routing for DeepSeek Harness: one user instruction enters, one tier decision comes out — no manual model switching.**
 
 Pick the right model tier per task automatically instead of switching models by hand.
+
+Last verified on DeepSeek Harness `dsh-v0.2.3-alpha.1` (2026-11-22).
 
 [简体中文](README.md) · [English](README.en.md) · [Español](README.es.md) · [Português](README.pt.md) · [हिन्दी](README.hi.md)
 
@@ -42,16 +42,12 @@ dsh plugin --profile <name> add dsh-autotier
 
 Frozen on 2026-10-31 in maintenance mode. The package stays installable; only security and dependency fixes are planned.
 
-
 ```sh
 dsh plugin --profile <name> add dsh-autotier
 ```
 
-
-
 Automatic model-tier routing for DeepSeek Harness: one user instruction enters,
 one tier decision comes out — no manual model switching.
-
 
 [![Gitee](https://img.shields.io/badge/Gitee-mirror-c71d23?logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/PerryLink/dsh-autotier/badge)](https://api.securityscorecards.dev/projects/github.com/PerryLink/dsh-autotier)

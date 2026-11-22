@@ -1,5 +1,3 @@
-> Host compatibility: DeepSeek Harness `dsh-v0.2.2-rc.4` (verified 2026-11-18).
-
 <div align="center">
 
 <picture>
@@ -13,10 +11,11 @@
 
 > 🧊 **CONGELADO — 2026-10-31. Modo manutenção.** Sem novos recursos; apenas correções de segurança e dependências.
 
+Última verificação: DeepSeek Harness `dsh-v0.2.3-alpha.1` (2026-11-22).
+
 ## Estado de manutenção: 🧊 CONGELADO
 
 Congelado em 2026-10-31 em modo manutenção. O pacote continua instalável; apenas correções de segurança e dependências estão previstas.
-
 
 [![Gitee](https://img.shields.io/badge/Gitee-mirror-c71d23?logo=gitee)](https://gitee.com/perrylink/dsh-autotier)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -34,7 +33,6 @@ Congelado em 2026-10-31 em modo manutenção. O pacote continua instalável; ape
 dsh plugin --profile <name> add dsh-autotier
 ```
 
-
 Roteamento automático por níveis de modelo para o DeepSeek Harness: entra uma
 instrução do usuário, sai uma decisão de nível — sem trocar de modelo à mão.
 
@@ -48,7 +46,6 @@ retorno.
 
 - **Repositório oficial**: <https://github.com/PerryLink/dsh-autotier>
 - **npm**: `dsh-autotier` (nome simples, sem scope)
-
 
 **📖 Base de conhecimento do ecossistema** — dados medidos, não marketing: [guia de desenvolvimento · dados de seleção · critérios de manutenção](https://perrylink.github.io/dsh-plugin-guide/).
 
@@ -120,7 +117,6 @@ durante um TTL.
 ![dsh-autotier: execução real de terminal](docs/assets/dsh-autotier-demo.gif)
 
 *Repetição animada de uma execução real registrada neste repositório.*
-
 
 ## Compatibilidade
 

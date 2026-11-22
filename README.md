@@ -1,5 +1,3 @@
-> 宿主兼容性：DeepSeek Harness `dsh-v0.2.2-rc.4`（2026-11-18 核验）。
-
 <div align="center">
 
 <picture>
@@ -12,6 +10,8 @@
 </div>
 
 > 🧊 **2026-10-31 起冻结，维护模式。** 不再新增功能；只做安全与依赖修复。
+
+最近一次核验：DeepSeek Harness `dsh-v0.2.3-alpha.1`（2026-11-22）。
 
 ## 维护状态：🧊 已冻结
 
@@ -33,7 +33,6 @@
 dsh plugin --profile <name> add dsh-autotier
 ```
 
-
 DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个档位决策出去 ——
 无需手动切换模型。
 
@@ -43,7 +42,6 @@ DeepSeek Harness 的自动模型分档路由：一条用户指令进来，一个
 
 - **官方仓库**：<https://github.com/PerryLink/dsh-autotier>
 - **npm**：`dsh-autotier`（裸名，无 scope）
-
 
 **📖 生态实测知识库**（实测数据，不是营销）：[插件开发指南 · 选型实测数据 · 维护取舍判据](https://perrylink.github.io/dsh-plugin-guide/)。
 
