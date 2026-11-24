@@ -1,6 +1,6 @@
 {
   "name": "dsh-autotier",
-  "version": "0.2.24",
+  "version": "0.2.25",
   "description": "Automatic strong/cheap model-tier routing for DeepSeek Harness: intent-gated tier landing on the agent/request waterfall, plan-mode handoff (strong plans, cheap implements), deterministic high-risk guards on tools/pre-execute, failure escalation with TTL fallback, a /tier command, and tier status tools",
   "repository": {
     "type": "git",
@@ -133,7 +133,7 @@
   ],
   "engines": {
     "node": "^22.19.0 || >=24.9.0",
-    "dsh": ">=0.1.6-0 <0.2.0 || >=0.2.0-0 <0.3.0 || >=0.2.1-0 <0.3.0 || >=0.2.2-0 <0.3.0 || >=0.2.3-0 <0.3.0-0"
+    "dsh": ">=0.2.0-0 <0.4.0-0"
   },
   "packageManager": "pnpm@11.7.0",
   "peerDependencies": {
